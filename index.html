@@ -1,0 +1,894 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>CRUDPay — Payments Infrastructure for Businesses</title>
+  <meta name="description" content="Accept payments, manage payouts, prevent fraud, and grow your business with CRUDPay."/>
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:ital,wght@0,300;0,400;0,500;0,600;0,700;1,300;1,400&display=swap" rel="stylesheet"/>
+
+  <script>
+    var ANALYTICS_CONFIG = {
+      SEGMENT_WRITE_KEY: "YOUR_SEGMENT_WRITE_KEY",
+      POSTHOG_API_KEY:   "YOUR_POSTHOG_API_KEY",
+      POSTHOG_HOST:      "https://app.posthog.com"
+    };
+  </script>
+
+  <!-- PostHog stub — paused until consent -->
+  <script>
+    !function(t,e){var o,n,p,r;e.__SV||(window.posthog=e,e._i=[],e.init=function(i,s,a){function g(t,e){var o=e.split(".");2==o.length&&(t=t[o[0]],e=o[1]);t[e]=function(){t.push([e].concat(Array.prototype.slice.call(arguments,0)))}}(p=t.createElement("script")).type="text/javascript",p.async=!0,p.src=s.api_host+"/static/array.js",(r=t.getElementsByTagName("script")[0]).parentNode.insertBefore(p,r);var u=e;for(a!==void 0?u=e[a]=[]:a="posthog",u.people=u.people||[],u.toString=function(t){var e="posthog";return"posthog"!==a&&(e+="."+a),t||(e+=" (stub)"),e},u.people.toString=function(){return u.toString(1)+" (stub)"},o="capture identify alias people.set people.set_once set_config register register_once unregister opt_out_capturing has_opted_out_capturing opt_in_capturing reset isFeatureEnabled onFeatureFlags getFeatureFlag getFeatureFlagPayload reloadFeatureFlags group updateEarlyAccessFeatureEnrollment getEarlyAccessFeatures getActiveMatchingSurveys getSurveys onSessionId".split(" "),n=0;n<o.length;n++)g(u,o[n]);e._i.push([i,s,a])},e.__SV=1)}(document,window.posthog||[]);
+    posthog.init(ANALYTICS_CONFIG.POSTHOG_API_KEY,{api_host:ANALYTICS_CONFIG.POSTHOG_HOST,autocapture:false,capture_pageview:false,persistence:"localStorage+cookie"});
+    posthog.opt_out_capturing();
+  </script>
+
+  <!-- Segment stub — loads after consent -->
+  <script>
+    !function(){var analytics=window.analytics=window.analytics||[];if(!analytics.initialize)if(analytics.invoked)window.console&&console.error&&console.error("Segment snippet included twice.");else{analytics.invoked=!0;analytics.methods=["trackSubmit","trackClick","trackLink","trackForm","pageview","identify","reset","group","track","ready","alias","debug","page","once","off","on","addSourceMiddleware","addIntegrationMiddleware","setAnonymousId","addDestinationMiddleware"];analytics.factory=function(e){return function(){var t=Array.prototype.slice.call(arguments);t.unshift(e);analytics.push(t);return analytics}};for(var e=0;e<analytics.methods.length;e++){var key=analytics.methods[e];analytics[key]=analytics.factory(key)}analytics.load=function(key,e){var t=document.createElement("script");t.type="text/javascript";t.async=!0;t.src="https://cdn.segment.com/analytics.js/v1/"+key+"/analytics.min.js";var n=document.getElementsByTagName("script")[0];n.parentNode.insertBefore(t,n);analytics._loadOptions=e};analytics._writeKey=ANALYTICS_CONFIG.SEGMENT_WRITE_KEY;analytics.SNIPPET_VERSION="4.15.3";}}();
+  </script>
+
+  <style>
+    *,*::before,*::after{box-sizing:border-box;margin:0;padding:0}
+    :root{
+      --black:#0B0B0B;--white:#FFFFFF;
+      --g50:#F7F7F7;--g100:#F0F0F0;--g200:#E2E2E2;--g300:#C8C8C8;--g400:#9E9E9E;--g600:#585858;--g800:#1A1A1A;
+      --blue:#2563EB;--blue-l:#EFF6FF;--green:#059669;--green-l:#ECFDF5;
+      --amber:#D97706;--amber-l:#FFFBEB;--red:#DC2626;--red-l:#FEF2F2;
+      --font:'Poppins',sans-serif;--r:8px;--r-lg:14px;--r-xl:20px;
+    }
+    html{scroll-behavior:smooth}
+    body{background:var(--white);color:var(--black);font-family:var(--font);-webkit-font-smoothing:antialiased;line-height:1.6;font-size:15px}
+
+    /* NAV */
+    nav{position:fixed;top:0;left:0;right:0;z-index:200;height:60px;background:rgba(255,255,255,.96);backdrop-filter:blur(12px);border-bottom:1px solid var(--g200);display:flex;align-items:center;padding:0 32px}
+    .nw{max-width:1160px;width:100%;margin:0 auto;display:flex;align-items:center;gap:36px}
+    .n-logo{font-size:18px;font-weight:700;color:var(--black);text-decoration:none;letter-spacing:-.02em;cursor:pointer;flex-shrink:0}
+    .n-links{display:flex;gap:24px;list-style:none;flex:1}
+    .n-links a{font-size:13.5px;color:var(--g600);text-decoration:none;transition:color .15s;cursor:pointer;font-weight:400}
+    .n-links a:hover,.n-links a.active{color:var(--black)}
+    .n-right{display:flex;gap:10px;align-items:center;margin-left:auto}
+    .btn{font-family:var(--font);font-size:13px;font-weight:500;padding:8px 18px;border-radius:var(--r);cursor:pointer;transition:all .15s;text-decoration:none;border:1px solid transparent;display:inline-flex;align-items:center;gap:6px;white-space:nowrap;line-height:1}
+    .bg{color:var(--g600);border-color:var(--g200);background:transparent}.bg:hover{border-color:var(--black);color:var(--black)}
+    .bp{background:var(--black);color:var(--white)}.bp:hover{background:var(--g800)}
+    .bb{background:var(--blue);color:var(--white);border-color:var(--blue)}.bb:hover{background:#1d4ed8}
+    .bl{font-size:14px;padding:12px 26px}
+
+    /* PAGES */
+    .pg{display:none;min-height:100vh;padding-top:60px}.pg.on{display:block}
+    .db-pg{display:none;min-height:100vh;padding-top:60px;background:var(--g50)}.db-pg.on{display:block}
+
+    /* LAYOUT */
+    .w{max-width:1160px;margin:0 auto;padding:0 32px}
+
+    /* HERO */
+    .hero{padding:80px 0 72px;border-bottom:1px solid var(--g200)}
+    .h-inner{display:grid;grid-template-columns:1fr 1fr;gap:60px;align-items:center}
+    .h-badge{display:inline-flex;align-items:center;gap:7px;font-size:12px;font-weight:500;color:var(--g600);border:1px solid var(--g200);padding:4px 12px;border-radius:100px;margin-bottom:22px}
+    .h-dot{width:6px;height:6px;background:var(--green);border-radius:50%}
+    .hero h1{font-size:clamp(30px,3.8vw,50px);font-weight:700;line-height:1.14;letter-spacing:-.025em;margin-bottom:18px}
+    .hero h1 em{font-style:italic;font-weight:300;color:var(--g600)}
+    .hero p{font-size:16px;color:var(--g600);line-height:1.7;margin-bottom:32px;max-width:420px}
+    .h-actions{display:flex;gap:12px;flex-wrap:wrap}
+
+    /* HERO CARD */
+    .hcard{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-xl);overflow:hidden;box-shadow:0 4px 28px rgba(0,0,0,.07)}
+    .hc-bar{background:var(--g50);border-bottom:1px solid var(--g200);padding:13px 18px;display:flex;align-items:center;gap:8px}
+    .hc-dots{display:flex;gap:5px}.hc-d{width:10px;height:10px;border-radius:50%;background:var(--g200)}
+    .hc-t{font-size:11px;color:var(--g400);font-weight:500;letter-spacing:.04em;margin-left:6px}
+    .hc-live{margin-left:auto;display:flex;align-items:center;gap:5px;font-size:11px;color:var(--green);font-weight:500}
+    .hc-ld{width:6px;height:6px;background:var(--green);border-radius:50%;animation:ld 2s infinite}
+    @keyframes ld{0%,100%{opacity:1}50%{opacity:.3}}
+    .hc-body{padding:18px}
+    .hc-stats{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px}
+    .hc-s{background:var(--g50);border:1px solid var(--g100);border-radius:var(--r);padding:11px 13px}
+    .hc-sn{font-size:17px;font-weight:600;display:block;line-height:1}
+    .hc-sl{font-size:10.5px;color:var(--g400);margin-top:4px}
+    .hc-div{height:1px;background:var(--g100);margin:10px 0}
+    .hc-txn{display:flex;align-items:center;gap:10px;padding:7px 0;border-bottom:1px solid var(--g100)}
+    .hc-txn:last-child{border-bottom:none}
+    .hc-ti{width:30px;height:30px;border-radius:var(--r);background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+    .hc-tn{font-size:12.5px;font-weight:500}.hc-ts{font-size:10.5px;color:var(--g400)}
+    .hc-ta{margin-left:auto;font-size:12.5px;font-weight:600}
+    .bg-g{background:var(--green-l);color:var(--green);font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px}
+    .bg-a{background:var(--amber-l);color:var(--amber);font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px}
+
+    /* LOGOS */
+    .logos{padding:36px 0;border-bottom:1px solid var(--g200);text-align:center}
+    .lg-lbl{font-size:12px;color:var(--g400);font-weight:500;letter-spacing:.06em;text-transform:uppercase;margin-bottom:18px}
+    .lg-row{display:flex;gap:36px;align-items:center;justify-content:center;flex-wrap:wrap}
+    .lg-pill{font-size:14px;font-weight:700;color:var(--g200);letter-spacing:-.02em}
+
+    /* FEATURES */
+    .feats{padding:80px 0;border-bottom:1px solid var(--g200)}
+    .feat-hdr{text-align:center;margin-bottom:52px}
+    .eyebrow{font-size:11px;font-weight:600;color:var(--g400);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;display:block}
+    .sh{font-size:clamp(24px,3vw,38px);font-weight:700;line-height:1.2;letter-spacing:-.022em}
+    .sh em{font-style:italic;font-weight:300}
+    .ssub{font-size:15px;color:var(--g600);margin-top:10px;max-width:480px;margin-left:auto;margin-right:auto;line-height:1.7}
+    .fg{display:grid;grid-template-columns:repeat(3,1fr);gap:22px}
+    .fc{border:1px solid var(--g200);border-radius:var(--r-lg);padding:26px;transition:border-color .15s,box-shadow .15s;cursor:default}
+    .fc:hover{border-color:var(--black);box-shadow:0 0 0 1px var(--black)}
+    .fi{width:38px;height:38px;background:var(--g50);border:1px solid var(--g200);border-radius:var(--r);display:flex;align-items:center;justify-content:center;margin-bottom:14px}
+    .fi svg{width:17px;height:17px;stroke:var(--black);fill:none;stroke-width:1.5;stroke-linecap:round;stroke-linejoin:round}
+    .ft{font-size:14.5px;font-weight:600;margin-bottom:7px}
+    .fd{font-size:13px;color:var(--g600);line-height:1.7}
+
+    /* CTA BAND */
+    .cband{background:var(--black);padding:64px 0}
+    .cband-in{text-align:center}
+    .cband h2{font-size:clamp(22px,3vw,34px);font-weight:700;color:var(--white);letter-spacing:-.02em;margin-bottom:10px}
+    .cband p{font-size:15px;color:rgba(255,255,255,.5);margin-bottom:26px}
+
+    /* PRICING */
+    .pr-hero{padding:64px 0 48px;text-align:center;border-bottom:1px solid var(--g200)}
+    .pr-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--g200);border:1px solid var(--g200);border-radius:var(--r-xl);overflow:hidden;margin-top:48px}
+    .plan{background:var(--white);padding:34px 30px;position:relative}
+    .plan.ft{background:var(--black)}
+    .pl-badge{font-size:10px;font-weight:600;letter-spacing:.08em;text-transform:uppercase;color:var(--white);background:var(--black);padding:3px 10px;border-radius:100px;display:inline-block;margin-bottom:14px}
+    .plan.ft .pl-badge{background:rgba(255,255,255,.12);color:rgba(255,255,255,.7)}
+    .pl-name{font-size:16px;font-weight:600;margin-bottom:5px}
+    .plan.ft .pl-name{color:var(--white)}
+    .pl-price{font-size:36px;font-weight:700;letter-spacing:-.03em;line-height:1;margin-bottom:4px}
+    .plan.ft .pl-price{color:var(--white)}
+    .pl-price span{font-size:14px;font-weight:400;color:var(--g400)}
+    .plan.ft .pl-price span{color:rgba(255,255,255,.35)}
+    .pl-desc{font-size:13px;color:var(--g600);margin-bottom:22px;line-height:1.6}
+    .plan.ft .pl-desc{color:rgba(255,255,255,.45)}
+    .pl-btn{width:100%;margin-bottom:22px;justify-content:center}
+    .pl-feats{list-style:none;display:flex;flex-direction:column;gap:9px}
+    .pl-feats li{font-size:12.5px;color:var(--g600);display:flex;align-items:center;gap:8px}
+    .plan.ft .pl-feats li{color:rgba(255,255,255,.55)}
+    .pl-feats li::before{content:'';width:14px;height:14px;background:url("data:image/svg+xml,%3Csvg viewBox='0 0 14 14' fill='none' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M2.5 7L5.5 10L11.5 4' stroke='%23059669' stroke-width='1.6' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") no-repeat center;flex-shrink:0}
+    .pr-faq{padding:64px 0}
+    .faq-g{display:grid;grid-template-columns:1fr 1fr;gap:28px;margin-top:36px}
+    .faq-i h4{font-size:14px;font-weight:600;margin-bottom:6px}
+    .faq-i p{font-size:13px;color:var(--g600);line-height:1.7}
+
+    /* DOCS */
+    .docs-l{display:grid;grid-template-columns:230px 1fr;min-height:calc(100vh - 60px)}
+    .docs-sb{border-right:1px solid var(--g200);padding:28px 16px;position:sticky;top:60px;height:calc(100vh - 60px);overflow-y:auto}
+    .sb-title{font-size:10.5px;font-weight:600;color:var(--g400);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;padding:0 6px}
+    .sb-grp{margin-bottom:20px}
+    .sb-link{display:block;font-size:13px;color:var(--g600);text-decoration:none;padding:5px 8px;border-radius:6px;cursor:pointer;transition:all .15s}
+    .sb-link:hover{color:var(--black);background:var(--g50)}
+    .sb-link.on{color:var(--black);background:var(--g100);font-weight:500}
+    .docs-c{padding:36px 44px;max-width:740px}
+    .docs-c h1{font-size:26px;font-weight:700;letter-spacing:-.02em;margin-bottom:10px}
+    .docs-c h2{font-size:19px;font-weight:600;margin:32px 0 10px;letter-spacing:-.01em}
+    .docs-c h3{font-size:15px;font-weight:600;margin:20px 0 7px}
+    .docs-c p{font-size:14px;color:var(--g600);line-height:1.8;margin-bottom:14px}
+    .docs-c ul{margin:0 0 14px 18px}
+    .docs-c li{font-size:14px;color:var(--g600);line-height:1.8;margin-bottom:3px}
+    .docs-meta{display:flex;align-items:center;gap:14px;margin-bottom:24px;padding-bottom:18px;border-bottom:1px solid var(--g200)}
+    .docs-meta span{font-size:12px;color:var(--g400)}
+    .d-badge{font-size:11px;font-weight:600;background:var(--blue-l);color:var(--blue);padding:3px 10px;border-radius:100px}
+    pre{background:var(--g50);border:1px solid var(--g200);border-radius:var(--r);padding:16px 18px;font-family:'SF Mono','Fira Code',monospace;font-size:12px;line-height:1.75;overflow-x:auto;margin-bottom:18px;color:var(--g800)}
+    code{font-family:'SF Mono','Fira Code',monospace;font-size:12px;background:var(--g100);padding:1px 5px;border-radius:4px}
+    .callout{background:var(--blue-l);border-left:3px solid var(--blue);border-radius:0 var(--r) var(--r) 0;padding:13px 16px;margin-bottom:18px}
+    .callout p{color:#1e40af;margin-bottom:0;font-size:13px}
+
+    /* AUTH */
+    .auth-wrap{min-height:calc(100vh - 60px);display:flex;align-items:center;justify-content:center;padding:40px 20px;background:var(--g50)}
+    .auth-card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-xl);padding:36px;width:100%;max-width:400px;box-shadow:0 4px 24px rgba(0,0,0,.05)}
+    .a-tabs{display:grid;grid-template-columns:1fr 1fr;gap:3px;background:var(--g100);border-radius:var(--r);padding:3px;margin-bottom:26px}
+    .a-tab{font-family:var(--font);font-size:13px;font-weight:500;padding:8px;border-radius:6px;border:none;background:transparent;color:var(--g600);cursor:pointer;transition:all .15s}
+    .a-tab.on{background:var(--white);color:var(--black);box-shadow:0 1px 4px rgba(0,0,0,.08)}
+    .a-title{font-size:20px;font-weight:700;letter-spacing:-.02em;margin-bottom:5px}
+    .a-sub{font-size:13px;color:var(--g400);margin-bottom:24px}
+    .ff{display:flex;flex-direction:column;gap:5px;margin-bottom:13px}
+    .ff label{font-size:12px;font-weight:500;color:var(--g600)}
+    .ff input,.ff select{font-family:var(--font);font-size:13.5px;padding:10px 13px;border:1px solid var(--g200);border-radius:var(--r);outline:none;transition:border-color .15s;color:var(--black);background:var(--white)}
+    .ff input:focus,.ff select:focus{border-color:var(--black)}
+    .ff input::placeholder{color:var(--g300)}
+    .f-row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+    .a-footer{text-align:center;font-size:12.5px;color:var(--g400);margin-top:18px}
+    .a-footer a{color:var(--black);font-weight:500;text-decoration:none;cursor:pointer}
+
+    /* DASHBOARD */
+    .db-w{max-width:1160px;margin:0 auto;padding:26px 32px}
+    .db-hdr{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;gap:16px;flex-wrap:wrap}
+    .db-g h2{font-size:19px;font-weight:600;letter-spacing:-.01em}
+    .db-g p{font-size:12.5px;color:var(--g400)}
+    .db-alert{background:var(--amber-l);border:1px solid #FDE68A;border-radius:var(--r);padding:8px 14px;display:flex;align-items:center;gap:8px;font-size:12.5px;color:var(--amber);font-weight:500}
+    .db-stats{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:22px}
+    .db-sc{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-lg);padding:18px 20px}
+    .db-sl{font-size:12px;color:var(--g400);font-weight:500;margin-bottom:7px}
+    .db-sn{font-size:24px;font-weight:700;letter-spacing:-.02em;line-height:1}
+    .db-sd{font-size:11px;margin-top:5px;font-weight:500}
+    .up{color:var(--green)}.dn{color:var(--red)}
+    .db-grid2{display:grid;grid-template-columns:2fr 1fr;gap:14px}
+    .db-card{background:var(--white);border:1px solid var(--g200);border-radius:var(--r-lg);padding:20px}
+    .db-ct{font-size:13.5px;font-weight:600;margin-bottom:14px;display:flex;align-items:center;justify-content:space-between}
+    .db-ca{font-size:12px;color:var(--blue);font-weight:500;cursor:pointer}
+    .tr{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--g100)}
+    .tr:last-child{border-bottom:none}
+    .tr-ic{width:32px;height:32px;border-radius:var(--r);background:var(--g50);border:1px solid var(--g100);display:flex;align-items:center;justify-content:center;font-size:12px;flex-shrink:0}
+    .tr-n{font-size:12.5px;font-weight:500}.tr-id{font-size:10.5px;color:var(--g400);font-family:'SF Mono',monospace}
+    .tr-a{margin-left:auto;font-size:12.5px;font-weight:600}
+    .ts{font-size:10px;font-weight:600;padding:2px 7px;border-radius:100px;margin-left:6px}
+    .ts-s{background:var(--green-l);color:var(--green)}
+    .ts-p{background:var(--amber-l);color:var(--amber)}
+    .ts-f{background:var(--red-l);color:var(--red)}
+    .ob-step{display:flex;align-items:center;gap:10px;padding:9px 0;border-bottom:1px solid var(--g100)}
+    .ob-step:last-child{border-bottom:none}
+    .ob-d{width:22px;height:22px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:600;flex-shrink:0}
+    .ob-done{background:var(--green-l);color:var(--green)}
+    .ob-cur{background:var(--amber-l);color:var(--amber)}
+    .ob-todo{background:var(--g100);color:var(--g400)}
+    .ob-tx{font-size:13px;font-weight:500}.ob-sx{font-size:11px;color:var(--g400)}
+    .ob-st{margin-left:auto;font-size:11px;font-weight:600}
+
+    /* CONSENT */
+    #cb{position:fixed;bottom:20px;left:50%;transform:translateX(-50%);z-index:9999;background:var(--black);border-radius:var(--r-lg);padding:15px 20px;display:flex;align-items:center;gap:16px;max-width:600px;width:calc(100% - 40px);box-shadow:0 8px 32px rgba(0,0,0,.2);animation:su .3s ease}
+    @keyframes su{from{opacity:0;transform:translateX(-50%) translateY(10px)}to{opacity:1;transform:translateX(-50%) translateY(0)}}
+    #cb.h{display:none}
+    .cb-t{flex:1;font-size:12.5px;color:rgba(255,255,255,.6);line-height:1.5}
+    .cb-t a{color:var(--white)}
+    .cb-d{font-family:var(--font);font-size:12.5px;font-weight:500;padding:7px 14px;border-radius:6px;background:transparent;color:rgba(255,255,255,.4);border:1px solid rgba(255,255,255,.15);cursor:pointer;transition:all .15s}
+    .cb-d:hover{color:var(--white);border-color:rgba(255,255,255,.35)}
+    .cb-a{font-family:var(--font);font-size:12.5px;font-weight:500;padding:7px 14px;border-radius:6px;background:var(--white);color:var(--black);border:none;cursor:pointer}
+    .cb-a:hover{background:var(--g100)}
+
+    .reveal{opacity:0;transform:translateY(14px);transition:opacity .55s ease,transform .55s ease}
+    .reveal.on{opacity:1;transform:translateY(0)}
+
+    @media(max-width:768px){
+      nav{padding:0 16px}.w{padding:0 16px}
+      .h-inner,.fg,.pr-grid,.docs-l,.db-grid2{grid-template-columns:1fr}
+      .db-stats{grid-template-columns:1fr 1fr}.n-links{display:none}.faq-g{grid-template-columns:1fr}
+    }
+  </style>
+</head>
+<body>
+
+<!-- CONSENT BANNER -->
+<div id="cb">
+  <p class="cb-t">We use cookies to improve your experience. <a href="#">Privacy Policy</a>.</p>
+  <div style="display:flex;gap:8px;flex-shrink:0">
+    <button class="cb-d" id="cbD">Decline</button>
+    <button class="cb-a" id="cbA">Accept</button>
+  </div>
+</div>
+
+<!-- NAV -->
+<nav>
+  <div class="nw">
+    <span class="n-logo" onclick="go('home')">CRUDPay</span>
+    <ul class="n-links">
+      <li><a onclick="go('home')" data-p="home">Home</a></li>
+      <li><a onclick="go('pricing')" data-p="pricing">Pricing</a></li>
+      <li><a onclick="go('docs')" data-p="docs">Docs</a></li>
+    </ul>
+    <div class="n-right" id="n-right">
+      <button class="btn bg" id="n-login" onclick="go('login')">Log in</button>
+      <button class="btn bp" id="n-signup" onclick="go('login')">Sign up free</button>
+    </div>
+  </div>
+</nav>
+
+<!-- ══ HOME ══ -->
+<div class="pg on" id="pg-home">
+  <div class="hero">
+    <div class="w">
+      <div class="h-inner">
+        <div>
+          <div class="h-badge"><span class="h-dot"></span> Trusted by 10,000+ businesses</div>
+          <h1>Payments that work<br>as hard as you <em>do.</em></h1>
+          <p>Accept payments, manage payouts, prevent fraud, and grow your business — all from one unified platform built for cross-border commerce.</p>
+          <div class="h-actions">
+            <button class="btn bp bl" id="h-cta1" onclick="go('login')">Create account</button>
+            <button class="btn bg bl" id="h-cta2" onclick="go('docs')">See the docs</button>
+          </div>
+        </div>
+        <div class="hcard">
+          <div class="hc-bar">
+            <div class="hc-dots"><div class="hc-d"></div><div class="hc-d"></div><div class="hc-d"></div></div>
+            <span class="hc-t">MERCHANT DASHBOARD</span>
+            <div class="hc-live"><span class="hc-ld"></span> Live</div>
+          </div>
+          <div class="hc-body">
+            <div class="hc-stats">
+              <div class="hc-s"><span class="hc-sn">₹2.4M</span><div class="hc-sl">Today's volume</div></div>
+              <div class="hc-s"><span class="hc-sn">98.2%</span><div class="hc-sl">Success rate</div></div>
+              <div class="hc-s"><span class="hc-sn">1,847</span><div class="hc-sl">Transactions</div></div>
+            </div>
+            <div class="hc-div"></div>
+            <div class="hc-txn"><div class="hc-ti">🛍</div><div><div class="hc-tn">Shopkart India</div><div class="hc-ts">UPI · 2m ago</div></div><div style="margin-left:auto;text-align:right"><div class="hc-ta">+₹4,200</div><span class="bg-g">Success</span></div></div>
+            <div class="hc-txn"><div class="hc-ti">📦</div><div><div class="hc-tn">LogiFreight Co.</div><div class="hc-ts">NEFT · 5m ago</div></div><div style="margin-left:auto;text-align:right"><div class="hc-ta">+₹18,500</div><span class="bg-g">Success</span></div></div>
+            <div class="hc-txn"><div class="hc-ti">🏥</div><div><div class="hc-tn">MedEase Clinic</div><div class="hc-ts">Card · 9m ago</div></div><div style="margin-left:auto;text-align:right"><div class="hc-ta">+₹1,800</div><span class="bg-a">Pending</span></div></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="logos">
+    <div class="w">
+      <div class="lg-lbl">Trusted by businesses across 40+ countries</div>
+      <div class="lg-row">
+        <span class="lg-pill">Shopkart</span><span class="lg-pill">LogiFreight</span><span class="lg-pill">NeoBank</span><span class="lg-pill">MedEase</span><span class="lg-pill">EduLeap</span><span class="lg-pill">FreshMart</span>
+      </div>
+    </div>
+  </div>
+  <div class="feats" id="home-feats">
+    <div class="w">
+      <div class="feat-hdr reveal">
+        <span class="eyebrow">Everything you need</span>
+        <h2 class="sh">One platform. <em>Every</em> payment need.</h2>
+        <p class="ssub">From accepting your first payment to managing enterprise-grade payouts — CRUDPay scales with your business.</p>
+      </div>
+      <div class="fg">
+        <div class="fc reveal" data-feat="payment_gateway" id="fc-gateway"><div class="fi"><svg viewBox="0 0 18 18"><rect x="2" y="5" width="14" height="10" rx="2"/><path d="M2 8h14M5 12h2"/></svg></div><div class="ft">Payment Gateway</div><div class="fd">Accept 100+ payment methods — UPI, cards, net banking, wallets, BNPL — with a single integration.</div></div>
+        <div class="fc reveal" data-feat="payouts" id="fc-payouts"><div class="fi"><svg viewBox="0 0 18 18"><path d="M9 2v14M3 8l6-6 6 6"/></svg></div><div class="ft">Instant Payouts</div><div class="fd">Disburse funds to vendors, employees, and partners in real time across 80+ countries.</div></div>
+        <div class="fc reveal" data-feat="fraud_prevention" id="fc-fraud"><div class="fi"><svg viewBox="0 0 18 18"><path d="M9 2l6 3v5c0 3-2.5 5.5-6 7C5.5 15.5 3 13 3 10V5l6-3z"/></svg></div><div class="ft">Fraud Prevention</div><div class="fd">AI-powered risk scoring detects anomalies before they become chargebacks — 99.97% uptime.</div></div>
+        <div class="fc reveal" data-feat="analytics" id="fc-analytics"><div class="fi"><svg viewBox="0 0 18 18"><path d="M3 13l4-4 3 3 5-7"/><circle cx="3" cy="13" r="1.5" fill="currentColor"/></svg></div><div class="ft">Real-time Analytics</div><div class="fd">Track success rates, corridor performance, and revenue metrics across every channel.</div></div>
+        <div class="fc reveal" data-feat="kyc" id="fc-kyc"><div class="fi"><svg viewBox="0 0 18 18"><circle cx="9" cy="6" r="3"/><path d="M3 16c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></div><div class="ft">Merchant Onboarding</div><div class="fd">Automated KYC, bank verification, and compliance — onboard merchants in minutes, not days.</div></div>
+        <div class="fc reveal" data-feat="escrow" id="fc-escrow"><div class="fi"><svg viewBox="0 0 18 18"><rect x="3" y="8" width="12" height="8" rx="1.5"/><path d="M6 8V6a3 3 0 016 0v2"/></svg></div><div class="ft">Smart Escrow</div><div class="fd">Trust-based escrow release — high-trust merchants get faster payouts without manual review.</div></div>
+      </div>
+    </div>
+  </div>
+  <div class="cband">
+    <div class="w"><div class="cband-in">
+      <h2>Start accepting payments today.</h2>
+      <p>No setup fees. No monthly charges. Pay only when you earn.</p>
+      <button class="btn bb bl" id="h-bot-cta" onclick="go('login')">Get started for free</button>
+    </div></div>
+  </div>
+</div>
+
+<!-- ══ PRICING ══ -->
+<div class="pg" id="pg-pricing">
+  <div class="pr-hero">
+    <div class="w">
+      <span class="eyebrow">Pricing</span>
+      <h1 class="sh">Simple, transparent <em>pricing</em> that scales.</h1>
+      <p class="ssub">No hidden fees. No setup costs. Pay only on successful transactions.</p>
+      <div class="pr-grid reveal" id="pr-grid">
+        <div class="plan" id="pl-starter" data-plan="starter">
+          <div class="pl-name">Starter</div>
+          <div class="pl-price">2%<span> per txn</span></div>
+          <p class="pl-desc">For individuals and early-stage businesses getting started.</p>
+          <button class="btn bg pl-btn" onclick="selectPlan('starter')">Get started</button>
+          <ul class="pl-feats"><li>UPI, cards, wallets</li><li>Basic dashboard</li><li>Email support</li><li>Standard payouts (T+2)</li><li>Basic fraud protection</li></ul>
+        </div>
+        <div class="plan ft" id="pl-growth" data-plan="growth">
+          <div class="pl-badge">Most popular</div>
+          <div class="pl-name">Growth</div>
+          <div class="pl-price">1.5%<span> per txn</span></div>
+          <p class="pl-desc">For growing businesses that need advanced features and faster settlements.</p>
+          <button class="btn pl-btn" style="background:var(--white);color:var(--black);border-color:var(--white)" onclick="selectPlan('growth')">Get started</button>
+          <ul class="pl-feats"><li>All payment methods</li><li>Advanced analytics</li><li>Priority support</li><li>Instant payouts</li><li>Smart fraud detection</li><li>Multi-currency</li><li>KYC automation</li></ul>
+        </div>
+        <div class="plan" id="pl-enterprise" data-plan="enterprise">
+          <div class="pl-name">Enterprise</div>
+          <div class="pl-price">Custom<span> pricing</span></div>
+          <p class="pl-desc">For large platforms with high-volume, cross-border payment needs.</p>
+          <button class="btn bp pl-btn" onclick="selectPlan('enterprise')">Contact sales</button>
+          <ul class="pl-feats"><li>Custom rates</li><li>Dedicated account manager</li><li>SLA support</li><li>Smart escrow (trust-based)</li><li>Cross-border corridors</li><li>AML compliance suite</li><li>Custom integrations</li></ul>
+        </div>
+      </div>
+    </div>
+  </div>
+  <div class="pr-faq">
+    <div class="w">
+      <h2 class="sh">Frequently asked questions</h2>
+      <div class="faq-g" id="faq-g">
+        <div class="faq-i reveal" data-faq="fees"><h4>Are there setup or monthly fees?</h4><p>No. CRUDPay charges only on successful transactions. No monthly, setup, or maintenance fees on Starter and Growth plans.</p></div>
+        <div class="faq-i reveal" data-faq="settlement"><h4>When do I receive my settlement?</h4><p>Starter: T+2. Growth: Next business day or instant. Enterprise: Custom settlement cycles based on your volume.</p></div>
+        <div class="faq-i reveal" data-faq="currencies"><h4>Which currencies do you support?</h4><p>135+ currencies across 80+ countries. INR, USD, EUR, BRL, MXN, and all major cross-border corridors natively supported.</p></div>
+        <div class="faq-i reveal" data-faq="upgrade"><h4>Can I upgrade my plan later?</h4><p>Yes, at any time. Changes apply from the next billing cycle. No penalties or lock-ins on any plan.</p></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DOCS ══ -->
+<div class="pg" id="pg-docs">
+  <div class="docs-l">
+    <aside class="docs-sb">
+      <div class="sb-grp">
+        <div class="sb-title">Getting started</div>
+        <a class="sb-link on" onclick="setDoc('quickstart')" data-doc="quickstart">Quickstart guide</a>
+        <a class="sb-link" onclick="setDoc('authentication')" data-doc="authentication">Authentication</a>
+        <a class="sb-link" onclick="setDoc('testing')" data-doc="testing">Testing</a>
+      </div>
+      <div class="sb-grp">
+        <div class="sb-title">Payments</div>
+        <a class="sb-link" onclick="setDoc('create-payment')" data-doc="create-payment">Create a payment</a>
+        <a class="sb-link" onclick="setDoc('payment-methods')" data-doc="payment-methods">Payment methods</a>
+        <a class="sb-link" onclick="setDoc('webhooks')" data-doc="webhooks">Webhooks</a>
+      </div>
+      <div class="sb-grp">
+        <div class="sb-title">Payouts</div>
+        <a class="sb-link" onclick="setDoc('payouts')" data-doc="payouts">Payouts API</a>
+        <a class="sb-link" onclick="setDoc('escrow')" data-doc="escrow">Smart Escrow</a>
+      </div>
+      <div class="sb-grp">
+        <div class="sb-title">Risk & Compliance</div>
+        <a class="sb-link" onclick="setDoc('fraud')" data-doc="fraud">Fraud detection</a>
+        <a class="sb-link" onclick="setDoc('kyc')" data-doc="kyc">KYC & onboarding</a>
+      </div>
+    </aside>
+    <div class="docs-c" id="docs-c">
+      <div class="docs-meta"><span class="d-badge">v2.4</span><span>Updated 3 days ago</span><span>5 min read</span></div>
+      <h1>Quickstart Guide</h1>
+      <p>Get CRUDPay integrated in under 10 minutes. This guide walks you through creating your first payment using our REST API.</p>
+      <div class="callout"><p><strong>Before you start:</strong> Create a CRUDPay account and retrieve your API keys from Settings → API Keys.</p></div>
+      <h2>1. Install the SDK</h2><p>Official SDKs for Node.js, Python, Ruby, PHP, Java, and Go.</p>
+      <pre>npm install crudpay-node</pre>
+      <h2>2. Initialize the client</h2>
+      <pre>const CRUDPay = require('crudpay-node');
+const client = new CRUDPay('YOUR_API_KEY');</pre>
+      <h2>3. Create your first payment</h2>
+      <pre>const payment = await client.payments.create({
+  amount: 50000,
+  currency: 'INR',
+  payment_method: 'upi',
+  merchant_id: 'mrc_xxxx',
+  customer: {
+    name: 'Priya Sharma',
+    email: 'priya@example.com'
+  }
+});</pre>
+      <h2>4. Handle the response</h2>
+      <p>On success you receive a <code>payment</code> object with <code>status: created</code>. Listen for the <code>payment.captured</code> webhook to confirm funds.</p>
+      <h3>Next steps</h3>
+      <ul>
+        <li>Set up <a href="#" onclick="setDoc('webhooks')">webhooks</a> for real-time events</li>
+        <li>Explore <a href="#" onclick="setDoc('payment-methods')">all payment methods</a></li>
+        <li>Configure <a href="#" onclick="setDoc('fraud')">fraud detection rules</a></li>
+      </ul>
+    </div>
+  </div>
+</div>
+
+<!-- ══ LOGIN ══ -->
+<div class="pg" id="pg-login">
+  <div class="auth-wrap">
+    <div class="auth-card">
+      <div class="a-tabs">
+        <button class="a-tab on" id="t-login" onclick="authTab('login')">Log in</button>
+        <button class="a-tab" id="t-signup" onclick="authTab('signup')">Sign up</button>
+      </div>
+      <div id="lf">
+        <div class="a-title">Welcome back</div>
+        <div class="a-sub">Log in to your CRUDPay account</div>
+        <form onsubmit="doLogin(event)">
+          <div class="ff"><label>Email</label><input type="email" id="l-email" placeholder="you@company.com" autocomplete="email"/></div>
+          <div class="ff"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"/></div>
+          <button type="submit" class="btn bp" style="width:100%;justify-content:center;font-size:14px;padding:12px;margin-top:6px">Log in</button>
+        </form>
+        <div class="a-footer">No account? <a onclick="authTab('signup')">Sign up free</a></div>
+      </div>
+      <div id="sf" style="display:none">
+        <div class="a-title">Create your account</div>
+        <div class="a-sub">Start accepting payments in minutes</div>
+        <form onsubmit="doSignup(event)">
+          <div class="f-row">
+            <div class="ff"><label>First name</label><input type="text" id="s-first" placeholder="Priya"/></div>
+            <div class="ff"><label>Last name</label><input type="text" id="s-last" placeholder="Sharma"/></div>
+          </div>
+          <div class="ff"><label>Work email</label><input type="email" id="s-email" placeholder="priya@company.com"/></div>
+          <div class="ff"><label>Business name</label><input type="text" id="s-biz" placeholder="Shopkart India"/></div>
+          <div class="ff"><label>Business type</label>
+            <select id="s-btype" onchange="trackSField('business_type',this.value)">
+              <option value="">Select type</option>
+              <option value="ecommerce">E-commerce</option>
+              <option value="saas">SaaS / Software</option>
+              <option value="marketplace">Marketplace</option>
+              <option value="logistics">Logistics</option>
+              <option value="fintech">Fintech</option>
+              <option value="other">Other</option>
+            </select>
+          </div>
+          <button type="submit" class="btn bp" style="width:100%;justify-content:center;font-size:14px;padding:12px;margin-top:6px">Create account</button>
+        </form>
+        <div class="a-footer">Already have an account? <a onclick="authTab('login')">Log in</a></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══ DASHBOARD ══ -->
+<div class="db-pg" id="pg-db">
+  <div class="db-w">
+    <div class="db-hdr">
+      <div class="db-g">
+        <h2>Good morning, <span id="db-name">Merchant</span> 👋</h2>
+        <p id="db-sub">Shopkart India · mrc_8821</p>
+      </div>
+      <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
+        <div class="db-alert" id="db-kyc-alrt">⚠ KYC pending — complete to unlock higher limits</div>
+        <button class="btn bg" onclick="doLogout()">Log out</button>
+      </div>
+    </div>
+    <div class="db-stats">
+      <div class="db-sc" data-stat="gmv"><div class="db-sl">GMV today</div><div class="db-sn">₹2,41,800</div><div class="db-sd up">↑ 12.4% vs yesterday</div></div>
+      <div class="db-sc" data-stat="success_rate"><div class="db-sl">Success rate</div><div class="db-sn">98.2%</div><div class="db-sd up">↑ 0.3% vs last week</div></div>
+      <div class="db-sc" data-stat="transactions"><div class="db-sl">Transactions</div><div class="db-sn">1,847</div><div class="db-sd up">↑ 8% vs yesterday</div></div>
+      <div class="db-sc" data-stat="settlement"><div class="db-sl">Next settlement</div><div class="db-sn">₹1,89,200</div><div class="db-sd" style="color:var(--g400)">Tomorrow, 9:00 AM</div></div>
+    </div>
+    <div class="db-grid2">
+      <div class="db-card">
+        <div class="db-ct">Recent transactions <span class="db-ca">View all</span></div>
+        <div class="tr"><div class="tr-ic">🛍</div><div><div class="tr-n">Shopkart Order #4821</div><div class="tr-id">pay_Kx8fHj2mL9</div></div><div><div class="tr-a">₹4,200</div><span class="ts ts-s">Success</span></div></div>
+        <div class="tr"><div class="tr-ic">📦</div><div><div class="tr-n">Vendor Payout — LogiCo</div><div class="tr-id">pay_Mn3kPq7vR1</div></div><div><div class="tr-a">₹18,500</div><span class="ts ts-s">Success</span></div></div>
+        <div class="tr"><div class="tr-ic">💳</div><div><div class="tr-n">Card Payment — John D.</div><div class="tr-id">pay_Rw9sLt4cN6</div></div><div><div class="tr-a">₹1,800</div><span class="ts ts-p">Pending</span></div></div>
+        <div class="tr"><div class="tr-ic">🔄</div><div><div class="tr-n">Refund — Order #4710</div><div class="tr-id">rfnd_Yx2bFm8kQ5</div></div><div><div class="tr-a">-₹950</div><span class="ts ts-f">Refunded</span></div></div>
+      </div>
+      <div class="db-card">
+        <div class="db-ct">Account setup</div>
+        <div class="ob-step"><div class="ob-d ob-done">✓</div><div><div class="ob-tx">Account created</div><div class="ob-sx">Email verified</div></div><div class="ob-st up">Done</div></div>
+        <div class="ob-step"><div class="ob-d ob-cur">!</div><div><div class="ob-tx">KYC verification</div><div class="ob-sx">Upload PAN & GST</div></div><div class="ob-st" style="color:var(--amber)">Pending</div></div>
+        <div class="ob-step"><div class="ob-d ob-todo">3</div><div><div class="ob-tx">Bank account</div><div class="ob-sx">Add settlement account</div></div><div class="ob-st" style="color:var(--g400)">To do</div></div>
+        <div class="ob-step"><div class="ob-d ob-todo">4</div><div><div class="ob-tx">Go live</div><div class="ob-sx">Activate production</div></div><div class="ob-st" style="color:var(--g400)">To do</div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
+
+<!-- ════════════════════════════════════
+     CDP ANALYTICS LAYER
+     Invisible to users. Fires Segment +
+     PostHog events for all 4 use cases.
+════════════════════════════════════ -->
+<script>
+(function(){
+  var C = false; // consent
+  var sid = 'sess_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);
+  var t0 = Date.now();
+  var curPage = 'home';
+  var user = null;
+  var scrollMark = {25:false,50:false,75:false,90:false};
+  var secFired = {};
+  var featSeen = {};
+  var planSeen = {};
+  var faqSeen = {};
+  var formStarted = false;
+  var sfT = null;
+  var activeDoc = 'quickstart';
+  var docT = Date.now();
+
+  // ── CONSENT ──────────────────────────────────────────────────
+  try{var sc=localStorage.getItem('cp_c');if(sc==='y'){document.getElementById('cb').classList.add('h');boot();}else if(sc==='n'){document.getElementById('cb').classList.add('h');}}catch(e){}
+  document.getElementById('cbA').onclick=function(){try{localStorage.setItem('cp_c','y');}catch(e){}document.getElementById('cb').classList.add('h');boot();fire('Consent Granted',{categories:['analytics','performance'],method:'banner'});};
+  document.getElementById('cbD').onclick=function(){try{localStorage.setItem('cp_c','n');}catch(e){}document.getElementById('cb').classList.add('h');};
+
+  function boot(){
+    C=true;
+    if(window.analytics&&!window.analytics.initialize) analytics.load(ANALYTICS_CONFIG.SEGMENT_WRITE_KEY);
+    if(window.posthog) posthog.opt_in_capturing();
+    pgView(curPage); sessionStart(); scrollTrack(); sectionObs();
+  }
+
+  // ── DISPATCH ─────────────────────────────────────────────────
+  // Single function → Segment + PostHog. All UC signals tagged with uc_context.
+  function fire(ev, props){
+    if(!C) return;
+    var p=Object.assign({session_id:sid,page:curPage,ts:new Date().toISOString(),elapsed_sec:Math.round((Date.now()-t0)/1000),user_type:user?'merchant':'anonymous',merchant_id:user?user.mid:null},props||{});
+    if(window.analytics&&analytics.track) analytics.track(ev,p);
+    if(window.posthog&&posthog.capture) posthog.capture(ev,p);
+  }
+
+  // ── IDENTIFY — the core identity resolution call ──────────────
+  // Called on login + signup. Stitches anonymous session → merchant profile.
+  // Segment aliases anonId → merchantId, unifying pre-login behavior.
+  function ident(mid, traits){
+    if(!C) return;
+    user=Object.assign({mid:mid},traits);
+    if(window.analytics&&analytics.identify) analytics.identify(mid,traits);
+    if(window.posthog&&posthog.identify) posthog.identify(mid,traits);
+  }
+
+  // ── PAGE VIEW ─────────────────────────────────────────────────
+  function pgView(name){
+    var q=new URLSearchParams(window.location.search);
+    if(window.analytics&&analytics.page) analytics.page(name,{title:document.title,path:'/'+name,referrer:document.referrer||'direct',utm_source:q.get('utm_source'),utm_medium:q.get('utm_medium'),utm_campaign:q.get('utm_campaign'),session_id:sid,merchant_id:user?user.mid:null});
+    if(window.posthog) posthog.capture('$pageview',{$current_url:window.location.pathname+'#'+name,page_name:name,session_id:sid});
+  }
+
+  function sessionStart(){
+    var ref=document.referrer||'direct',ch='direct';
+    if(/google|bing|yahoo/.test(ref)) ch='organic_search';
+    if(/linkedin/.test(ref)) ch='linkedin';
+    if(/twitter|x\.com/.test(ref)) ch='social';
+    var q=new URLSearchParams(window.location.search);
+    if(q.get('utm_medium')==='cpc') ch='paid_search';
+    if(q.get('utm_medium')==='email') ch='email';
+    var ret=false; try{ret=!!localStorage.getItem('cp_ret');}catch(e){}
+    fire('Session Started',{referrer:ref,channel:ch,utm_source:q.get('utm_source'),utm_medium:q.get('utm_medium'),utm_campaign:q.get('utm_campaign'),is_returning:ret,device_type:window.innerWidth<768?'mobile':window.innerWidth<1024?'tablet':'desktop',language:navigator.language});
+    try{localStorage.setItem('cp_ret','1');}catch(e){}
+  }
+
+  function scrollTrack(){
+    window.addEventListener('scroll',function(){
+      var pct=Math.round((window.scrollY/Math.max(1,document.body.scrollHeight-window.innerHeight))*100);
+      [25,50,75,90].forEach(function(m){if(!scrollMark[m]&&pct>=m){scrollMark[m]=true;fire('Scroll Depth Reached',{depth_percent:m});}});
+    },{passive:true});
+  }
+
+  function sectionObs(){
+    // Feature cards — UC2 conversion + UC1/UC3/UC4 intent signals
+    document.querySelectorAll('.fc').forEach(function(el){
+      var feat=el.dataset.feat;
+      var ucMap={payment_gateway:'uc2_conversion',payouts:'uc2_conversion',fraud_prevention:'uc3_risk_fraud',analytics:'uc1_lifecycle',kyc:'uc1_onboarding',escrow:'uc4_trust_identity'};
+      new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting&&!featSeen[feat]&&C){featSeen[feat]=true;fire('Feature Card Viewed',{feature_id:feat,uc_context:ucMap[feat]||null});}});},{threshold:.6}).observe(el);
+      var hs=null;
+      el.addEventListener('mouseenter',function(){hs=Date.now();});
+      el.addEventListener('mouseleave',function(){if(hs&&C){var ms=Date.now()-hs;if(ms>1000)fire('Feature Card Engaged',{feature_id:feat,hover_ms:ms,uc_context:ucMap[feat]||null});hs=null;}});
+    });
+
+    // Pricing plans — UC2 conversion funnel
+    document.querySelectorAll('.plan').forEach(function(el){
+      var plan=el.dataset.plan;
+      new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting&&!planSeen[plan]&&C){planSeen[plan]=true;fire('Pricing Plan Viewed',{plan_name:plan,is_featured:plan==='growth',uc_context:'uc2_conversion_revenue'});}});},{threshold:.7}).observe(el);
+    });
+
+    // FAQ — pre-signup friction signals (UC1 merchant lifecycle)
+    document.querySelectorAll('.faq-i').forEach(function(el){
+      var faq=el.dataset.faq;
+      new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting&&!faqSeen[faq]&&C){faqSeen[faq]=true;fire('FAQ Viewed',{faq_id:faq,uc_context:'uc1_merchant_lifecycle'});}});},{threshold:.8}).observe(el);
+    });
+
+    // Dashboard stat cards — UC1 merchant engagement
+    document.querySelectorAll('.db-sc').forEach(function(el){
+      var stat=el.dataset.stat;
+      new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting&&C){fire('Dashboard Stat Viewed',{stat_id:stat,merchant_id:user?user.mid:null,uc_context:'uc1_merchant_lifecycle'});new IntersectionObserver(function(){}).observe(el);}});},{threshold:.9}).observe(el);
+    });
+  }
+
+  // ── NAVIGATION ────────────────────────────────────────────────
+  window.go=function(page,src){
+    document.querySelectorAll('.pg,.db-pg').forEach(function(p){p.classList.remove('on');});
+    document.querySelectorAll('.n-links a').forEach(function(a){a.classList.toggle('active',a.dataset.p===page);});
+    var el=document.getElementById(page==='dashboard'?'pg-db':'pg-'+page);
+    if(el) el.classList.add('on');
+    window.scrollTo(0,0);
+    scrollMark={25:false,50:false,75:false,90:false};
+    featSeen={};planSeen={};faqSeen={};secFired={};
+    t0=Date.now();
+    curPage=page;
+    if(C){
+      pgView(page);
+      fire('Page Navigated',{destination:page,source_page:src||curPage,user_type:user?'merchant':'anonymous',
+        // UC1: returning merchant navigating to dashboard = activity signal
+        is_dashboard_visit:page==='dashboard',
+        days_since_signup:user&&user.signup_date?Math.floor((Date.now()-new Date(user.signup_date).getTime())/86400000):null
+      });
+    }
+    // Update nav for dashboard
+    if(page==='dashboard'&&user){
+      document.getElementById('n-right').innerHTML='<span style="font-size:13px;color:var(--g600);font-weight:500">'+((user.biz||user.email)||'')+'</span><button class="btn bg" onclick="doLogout()">Log out</button>';
+    } else if(page!=='dashboard'){
+      if(!document.getElementById('n-login')){
+        document.getElementById('n-right').innerHTML='<button class="btn bg" id="n-login" onclick="go(\'login\')">Log in</button><button class="btn bp" id="n-signup" onclick="go(\'login\')">Sign up free</button>';
+      }
+    }
+    setTimeout(function(){document.querySelectorAll('.reveal').forEach(function(el){el.classList.remove('on');});initReveal();if(C)sectionObs();},50);
+  };
+
+  // ── AUTH TABS ─────────────────────────────────────────────────
+  window.authTab=function(tab){
+    document.getElementById('t-login').classList.toggle('on',tab==='login');
+    document.getElementById('t-signup').classList.toggle('on',tab==='signup');
+    document.getElementById('lf').style.display=tab==='login'?'':'none';
+    document.getElementById('sf').style.display=tab==='signup'?'':'none';
+    if(tab==='signup'&&!sfT) sfT=Date.now();
+    fire('Auth Tab Switched',{tab:tab,uc_context:'uc1_merchant_onboarding'});
+  };
+
+  // ── LOGIN ─────────────────────────────────────────────────────
+  // Returning merchant identified. identify() stitches anon → known profile.
+  // Traits include all UC1-UC4 signals: onboarding_step, risk_score, trust_score, preferred_payment_method.
+  window.doLogin=function(e){
+    e.preventDefault();
+    var email=document.getElementById('l-email').value.trim();
+    if(!email) return;
+
+    var traits={
+      email:email, mid:'mrc_8821', merchant_id:'mrc_8821',
+      business_name:'Shopkart India', business_type:'ecommerce',
+      plan:'growth',
+      // UC1: merchant lifecycle signals
+      kyc_status:'pending', onboarding_step:'kyc_pending',
+      days_since_last_login:14,            // churn signal
+      support_tickets_open:3,              // churn signal
+      transaction_velocity_trend:'declining',
+      // UC2: payment preferences
+      preferred_payment_method:'UPI', preferred_corridor:'INR-USD',
+      // UC3: risk
+      risk_score:0.72,
+      device_fingerprint_changes_7d:1,
+      // UC4: trust + escrow
+      trust_score:0.41, escrow_tier:'standard',
+      account_age_days:135, signup_date:'2024-09-12',
+      is_returning_user:true, biz:'Shopkart India'
+    };
+
+    // ── THE IDENTITY STITCH ──
+    // analytics.identify('mrc_8821', traits) merges the anonymous session
+    // that browsed Home → Pricing → Docs into this merchant's unified profile.
+    // Segment will alias anonId → mrc_8821.
+    ident('mrc_8821', traits);
+
+    fire('Merchant Logged In',{
+      merchant_id:'mrc_8821', plan:'growth',
+      kyc_status:'pending', onboarding_step:'kyc_pending',
+      days_since_last_login:14,
+      // UC1: is this a churn risk? (login gap + open tickets)
+      churn_risk_signal:true,
+      // UC3: login risk assessment
+      risk_score:0.72, login_risk_flag:false,
+      // UC4: identity resolved
+      identity_resolved:true, pre_login_pages_visited:3,
+      uc_context:'uc1_uc3_uc4_identity_resolution'
+    });
+
+    mountDash(traits); go('dashboard','login');
+  };
+
+  // ── SIGNUP ────────────────────────────────────────────────────
+  // New merchant. anonymous visitor → identified merchant.
+  // This is the primary UC4 identity resolution moment on the website.
+  window.doSignup=function(e){
+    e.preventDefault();
+    var first=document.getElementById('s-first').value.trim();
+    var last=document.getElementById('s-last').value.trim();
+    var email=document.getElementById('s-email').value.trim();
+    var biz=document.getElementById('s-biz').value.trim();
+    var btype=document.getElementById('s-btype').value;
+    if(!email||!biz) return;
+
+    var mid='mrc_'+Math.random().toString(36).substr(2,6).toUpperCase();
+    var traits={
+      email:email, firstName:first, lastName:last,
+      mid:mid, merchant_id:mid,
+      business_name:biz, business_type:btype, biz:biz,
+      plan:'starter',
+      // UC1: start of merchant lifecycle
+      kyc_status:'not_started', onboarding_step:'account_created',
+      lifecycle_stage:'acquisition',
+      // UC2: no payment preference yet — to be learned from first txn
+      preferred_payment_method:null, preferred_corridor:null,
+      // UC3: baseline risk for new merchant
+      risk_score:0.1,
+      // UC4: no trust built yet, standard escrow
+      trust_score:0.0, escrow_tier:'standard',
+      signup_date:new Date().toISOString(),
+      account_age_days:0,
+      lead_source:'website_signup',
+      is_returning_user:false,
+      signup_form_duration_sec:sfT?Math.round((Date.now()-sfT)/1000):null
+    };
+
+    // ── IDENTITY RESOLUTION ──
+    // All pre-signup anonymous behavior (which pages, which features,
+    // which pricing plan viewed) is now collapsed into this merchant's
+    // Segment profile via analytics.identify().
+    ident(mid, traits);
+
+    fire('Merchant Signed Up',{
+      merchant_id:mid, business_type:btype,
+      onboarding_step:'account_created',
+      signup_form_duration_sec:traits.signup_form_duration_sec,
+      // UC1: lifecycle starts here
+      lifecycle_stage:'acquisition',
+      // UC4: new identity created
+      identity_resolved:true,
+      uc_context:'uc1_uc4_identity_resolution'
+    });
+
+    mountDash(traits); go('dashboard','signup');
+  };
+
+  // ── DASHBOARD MOUNT ───────────────────────────────────────────
+  // Fires unified merchant profile event — feeds all 4 UC audiences in Segment.
+  function mountDash(t){
+    document.getElementById('db-name').textContent=t.firstName||t.business_name||'Merchant';
+    document.getElementById('db-sub').textContent=(t.business_name||'')+'  ·  '+(t.merchant_id||t.mid||'');
+    var alert=document.getElementById('db-kyc-alrt');
+    var kycIncomplete=t.kyc_status==='not_started'||t.kyc_status==='pending';
+    alert.style.display=kycIncomplete?'flex':'none';
+
+    if(C){
+      // UC1: Onboarding alert impression
+      if(kycIncomplete) fire('Onboarding Alert Shown',{alert_type:'kyc_incomplete',kyc_status:t.kyc_status,onboarding_step:t.onboarding_step,merchant_id:t.mid||t.merchant_id,uc_context:'uc1_merchant_onboarding'});
+
+      // ── UNIFIED MERCHANT PROFILE EVENT ──
+      // This single event carries all signals for all 4 use cases.
+      // In Segment, computed traits and audience rules are built on top of this.
+      fire('Dashboard Loaded',{
+        merchant_id:t.mid||t.merchant_id,
+        plan:t.plan,
+
+        // UC1 — Merchant Lifecycle signals
+        kyc_status:t.kyc_status,
+        onboarding_step:t.onboarding_step,
+        lifecycle_stage:t.lifecycle_stage||'active',
+        days_since_last_login:t.days_since_last_login||0,
+        support_tickets_open:t.support_tickets_open||0,
+        transaction_velocity_trend:t.transaction_velocity_trend||'stable',
+        is_churn_risk:(t.days_since_last_login||0)>10||(t.support_tickets_open||0)>2,
+
+        // UC2 — Conversion & Revenue signals
+        preferred_payment_method:t.preferred_payment_method||null,
+        preferred_corridor:t.preferred_corridor||null,
+
+        // UC3 — Risk & Fraud signals
+        risk_score:t.risk_score||0,
+        device_fingerprint_changes_7d:t.device_fingerprint_changes_7d||0,
+
+        // UC4 — Identity & Trust signals
+        trust_score:t.trust_score||0,
+        escrow_tier:t.escrow_tier||'standard',
+        account_age_days:t.account_age_days||0,
+        is_high_trust:(t.trust_score||0)>0.7,
+        identity_resolved:true,
+
+        uc_context:'uc1_uc2_uc3_uc4_unified_merchant_profile'
+      });
+    }
+  }
+
+  // ── LOGOUT ────────────────────────────────────────────────────
+  window.doLogout=function(){
+    fire('Merchant Logged Out',{merchant_id:user?user.mid:null,session_duration_sec:Math.round((Date.now()-t0)/1000)});
+    user=null;
+    if(window.analytics&&analytics.reset) analytics.reset();
+    if(window.posthog&&posthog.reset) posthog.reset();
+    go('home','logout');
+  };
+
+  // ── CTA CLICKS ────────────────────────────────────────────────
+  document.getElementById('h-cta1').addEventListener('click',function(){fire('CTA Clicked',{cta_id:'hero_create_account',location:'hero',type:'primary',uc_context:'uc2_conversion_funnel'});});
+  document.getElementById('h-cta2').addEventListener('click',function(){fire('CTA Clicked',{cta_id:'hero_see_docs',location:'hero',type:'secondary',uc_context:'uc2_conversion_funnel'});});
+  document.getElementById('h-bot-cta').addEventListener('click',function(){fire('CTA Clicked',{cta_id:'bottom_get_started',location:'cta_band',type:'primary',uc_context:'uc2_conversion_funnel'});});
+
+  // ── PRICING PLAN SELECT ───────────────────────────────────────
+  // UC2: which plan a merchant selects = revenue optimization signal
+  window.selectPlan=function(plan){
+    fire('Pricing Plan Selected',{plan_name:plan,is_enterprise:plan==='enterprise',uc_context:'uc2_conversion_revenue_optimization'});
+    go('login','pricing_'+plan);
+  };
+
+  // ── DOCS TRACKING ─────────────────────────────────────────────
+  // Docs behavior = intent signals for all 4 UCs:
+  // kyc docs → UC1 onboarding, fraud docs → UC3 risk, escrow docs → UC4 trust
+  var docMap={'quickstart':'getting_started','authentication':'getting_started','testing':'getting_started','create-payment':'payments','payment-methods':'uc2_conversion_research','webhooks':'payments','payouts':'payouts','escrow':'uc4_trust_interest','fraud':'uc3_risk_awareness','kyc':'uc1_onboarding_intent'};
+  window.setDoc=function(id){
+    var dwell=Date.now()-docT;
+    if(dwell>2000&&C) fire('Doc Section Read',{doc_id:activeDoc,dwell_ms:dwell,uc_signal:docMap[activeDoc]||null,merchant_id:user?user.mid:null});
+    document.querySelectorAll('.sb-link').forEach(function(l){l.classList.toggle('on',l.dataset.doc===id);});
+    activeDoc=id; docT=Date.now();
+    fire('Doc Page Viewed',{doc_id:id,doc_category:docMap[id]||null,uc_signal:docMap[id]||null,merchant_id:user?user.mid:null});
+  };
+
+  // ── SIGNUP FORM FIELDS ────────────────────────────────────────
+  // UC1: track each field of the onboarding funnel
+  window.trackSField=function(f,v){fire('Signup Field Changed',{field:f,value:v,uc_context:'uc1_merchant_onboarding_funnel'});};
+  ['s-first','s-last','s-email','s-biz'].forEach(function(id){
+    var el=document.getElementById(id);
+    if(!el) return;
+    el.addEventListener('focus',function(){if(!formStarted&&C){formStarted=true;fire('Signup Form Started',{uc_context:'uc1_merchant_onboarding'});}});
+    el.addEventListener('blur',function(){if(el.value.trim()&&C) fire('Signup Field Completed',{field:id.replace('s-',''),uc_context:'uc1_merchant_onboarding_funnel'});});
+  });
+
+  // ── PAGE EXIT ─────────────────────────────────────────────────
+  window.addEventListener('beforeunload',function(){
+    if(!C) return;
+    fire('Session Ended',{session_duration_sec:Math.round((Date.now()-t0)/1000),max_scroll_depth:Object.keys(scrollMark).reduce(function(m,k){return scrollMark[k]?parseInt(k):m;},0),last_page:curPage,is_merchant:!!user});
+  });
+
+  // ── REVEAL ────────────────────────────────────────────────────
+  function initReveal(){
+    var obs=new IntersectionObserver(function(entries){entries.forEach(function(e){if(e.isIntersecting){e.target.classList.add('on');obs.unobserve(e.target);}});},{threshold:.1});
+    document.querySelectorAll('.reveal').forEach(function(el){obs.observe(el);});
+  }
+  initReveal();
+  document.querySelectorAll('[data-p="home"]').forEach(function(a){a.classList.add('active');});
+  if(C){scrollTrack();sectionObs();}
+
+})();
+</script>
+</body>
+</html>
