@@ -9,7 +9,7 @@
 
   <script>
     var ANALYTICS_CONFIG = {
-      SEGMENT_WRITE_KEY: "suzg9Ck5EW9xT65CXpm456ObsF3r3K31",
+      SEGMENT_WRITE_KEY: "YOUR_SEGMENT_WRITE_KEY",
       POSTHOG_API_KEY:   "YOUR_POSTHOG_API_KEY",
       POSTHOG_HOST:      "https://app.posthog.com"
     };
@@ -229,6 +229,28 @@
     .cb-a{font-family:var(--font);font-size:12.5px;font-weight:500;padding:7px 14px;border-radius:6px;background:var(--white);color:var(--black);border:none;cursor:pointer}
     .cb-a:hover{background:var(--g100)}
 
+    /* KYC */
+    .db-tab{font-family:var(--font);font-size:13px;font-weight:500;padding:14px 20px;border:none;background:transparent;color:var(--g400);cursor:pointer;border-bottom:2px solid transparent;transition:all .15s}
+    .db-tab:hover{color:var(--black)}
+    .db-tab.on{color:var(--black);border-bottom-color:var(--black)}
+    .kyc-step{border:1px solid var(--g200);border-radius:var(--r-lg);margin-bottom:12px;overflow:hidden;transition:opacity .2s}
+    .kyc-step-hdr{display:flex;align-items:center;gap:14px;padding:18px 20px;cursor:pointer;background:var(--white)}
+    .kyc-step-num{width:28px;height:28px;border-radius:50%;background:var(--g100);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:600;color:var(--g600);flex-shrink:0}
+    .kyc-step-num.done{background:var(--green-l);color:var(--green)}
+    .kyc-step-num.active{background:var(--black);color:var(--white)}
+    .kyc-step-title{font-size:14px;font-weight:600;color:var(--black)}
+    .kyc-step-sub{font-size:12px;color:var(--g400);margin-top:2px}
+    .kyc-step-status{margin-left:auto;font-size:12px;font-weight:500;color:var(--amber)}
+    .kyc-step-status.done{color:var(--green)}
+    .kyc-step-body{padding:20px;border-top:1px solid var(--g100);background:var(--g50)}
+    .kyc-form-row{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px}
+    .kyc-upload-row{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+    .kyc-upload{border:2px dashed var(--g200);border-radius:var(--r-lg);padding:24px 16px;text-align:center;cursor:pointer;transition:all .15s;background:var(--white)}
+    .kyc-upload:hover{border-color:var(--black)}
+    .kyc-upload.uploaded{border-color:var(--green);border-style:solid;background:var(--green-l)}
+    .kyc-upload-status{font-size:11px;color:var(--g400);margin-top:8px;font-weight:500}
+    .kyc-upload-status.ok{color:var(--green)}
+
     .reveal{opacity:0;transform:translateY(14px);transition:opacity .55s ease,transform .55s ease}
     .reveal.on{opacity:1;transform:translateY(0)}
 
@@ -275,7 +297,7 @@
           <div class="h-badge"><span class="h-dot"></span> Trusted by 10,000+ businesses</div>
           <h1>Payments that work<br>as hard as you <em>do.</em></h1>
           <p>Accept payments, manage payouts, prevent fraud, and grow your business — all from one unified platform built for cross-border commerce.</p>
-          <div class="h-actions">
+          <div class="h-actions" id="hero-actions">
             <button class="btn bp bl" id="h-cta1" onclick="go('login')">Create account</button>
             <button class="btn bg bl" id="h-cta2" onclick="go('docs')">See the docs</button>
           </div>
@@ -492,78 +514,251 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
 
 <!-- ══ DASHBOARD ══ -->
 <div class="db-pg" id="pg-db">
+
+  <!-- Dashboard Sub-nav -->
+  <div style="background:var(--white);border-bottom:1px solid var(--g200);padding:0 32px;position:sticky;top:60px;z-index:100">
+    <div style="max-width:1160px;margin:0 auto;display:flex;gap:0">
+      <button class="db-tab on" id="dbt-overview" onclick="dbTab('overview')">Overview</button>
+      <button class="db-tab" id="dbt-kyc" onclick="dbTab('kyc')">KYC & Verification</button>
+      <button class="db-tab" id="dbt-transactions" onclick="dbTab('transactions')">Transactions</button>
+      <button class="db-tab" id="dbt-settings" onclick="dbTab('settings')">Settings</button>
+    </div>
+  </div>
+
   <div class="db-w">
     <div class="db-hdr">
       <div class="db-g">
         <h2>Good morning, <span id="db-name">Merchant</span> 👋</h2>
-        <p id="db-sub">Shopkart India · mrc_8821</p>
+        <p id="db-sub">· ·</p>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <div class="db-alert" id="db-kyc-alrt">⚠ KYC pending — complete to unlock higher limits</div>
+        <div class="db-alert" id="db-kyc-alrt" onclick="dbTab('kyc')" style="cursor:pointer">⚠ KYC pending — click to complete verification</div>
         <button class="btn bg" onclick="doLogout()">Log out</button>
       </div>
     </div>
-    <div class="db-stats">
-      <div class="db-sc" data-stat="gmv"><div class="db-sl">GMV today</div><div class="db-sn">₹2,41,800</div><div class="db-sd up">↑ 12.4% vs yesterday</div></div>
-      <div class="db-sc" data-stat="success_rate"><div class="db-sl">Success rate</div><div class="db-sn">98.2%</div><div class="db-sd up">↑ 0.3% vs last week</div></div>
-      <div class="db-sc" data-stat="transactions"><div class="db-sl">Transactions</div><div class="db-sn">1,847</div><div class="db-sd up">↑ 8% vs yesterday</div></div>
-      <div class="db-sc" data-stat="settlement"><div class="db-sl">Next settlement</div><div class="db-sn">₹1,89,200</div><div class="db-sd" style="color:var(--g400)">Tomorrow, 9:00 AM</div></div>
-    </div>
-    <div class="db-grid2">
-      <div class="db-card">
-        <div class="db-ct">Recent transactions <span class="db-ca">View all</span></div>
-        <div class="tr"><div class="tr-ic">🛍</div><div><div class="tr-n">Shopkart Order #4821</div><div class="tr-id">pay_Kx8fHj2mL9</div></div><div><div class="tr-a">₹4,200</div><span class="ts ts-s">Success</span></div></div>
-        <div class="tr"><div class="tr-ic">📦</div><div><div class="tr-n">Vendor Payout — LogiCo</div><div class="tr-id">pay_Mn3kPq7vR1</div></div><div><div class="tr-a">₹18,500</div><span class="ts ts-s">Success</span></div></div>
-        <div class="tr"><div class="tr-ic">💳</div><div><div class="tr-n">Card Payment — John D.</div><div class="tr-id">pay_Rw9sLt4cN6</div></div><div><div class="tr-a">₹1,800</div><span class="ts ts-p">Pending</span></div></div>
-        <div class="tr"><div class="tr-ic">🔄</div><div><div class="tr-n">Refund — Order #4710</div><div class="tr-id">rfnd_Yx2bFm8kQ5</div></div><div><div class="tr-a">-₹950</div><span class="ts ts-f">Refunded</span></div></div>
+
+    <!-- OVERVIEW TAB -->
+    <div id="db-overview">
+      <div class="db-stats">
+        <div class="db-sc" data-stat="gmv"><div class="db-sl">GMV today</div><div class="db-sn">₹2,41,800</div><div class="db-sd up">↑ 12.4% vs yesterday</div></div>
+        <div class="db-sc" data-stat="success_rate"><div class="db-sl">Success rate</div><div class="db-sn">98.2%</div><div class="db-sd up">↑ 0.3% vs last week</div></div>
+        <div class="db-sc" data-stat="transactions"><div class="db-sl">Transactions</div><div class="db-sn">1,847</div><div class="db-sd up">↑ 8% vs yesterday</div></div>
+        <div class="db-sc" data-stat="settlement"><div class="db-sl">Next settlement</div><div class="db-sn">₹1,89,200</div><div class="db-sd" style="color:var(--g400)">Tomorrow, 9:00 AM</div></div>
       </div>
-      <div class="db-card">
-        <div class="db-ct">Account setup</div>
-        <div class="ob-step"><div class="ob-d ob-done">✓</div><div><div class="ob-tx">Account created</div><div class="ob-sx">Email verified</div></div><div class="ob-st up">Done</div></div>
-        <div class="ob-step"><div class="ob-d ob-cur">!</div><div><div class="ob-tx">KYC verification</div><div class="ob-sx">Upload PAN & GST</div></div><div class="ob-st" style="color:var(--amber)">Pending</div></div>
-        <div class="ob-step"><div class="ob-d ob-todo">3</div><div><div class="ob-tx">Bank account</div><div class="ob-sx">Add settlement account</div></div><div class="ob-st" style="color:var(--g400)">To do</div></div>
-        <div class="ob-step"><div class="ob-d ob-todo">4</div><div><div class="ob-tx">Go live</div><div class="ob-sx">Activate production</div></div><div class="ob-st" style="color:var(--g400)">To do</div></div>
+      <div class="db-grid2">
+        <div class="db-card">
+          <div class="db-ct">Recent transactions <span class="db-ca" onclick="dbTab('transactions')">View all</span></div>
+          <div class="tr"><div class="tr-ic">🛍</div><div><div class="tr-n">Shopkart Order #4821</div><div class="tr-id">pay_Kx8fHj2mL9</div></div><div><div class="tr-a">₹4,200</div><span class="ts ts-s">Success</span></div></div>
+          <div class="tr"><div class="tr-ic">📦</div><div><div class="tr-n">Vendor Payout — LogiCo</div><div class="tr-id">pay_Mn3kPq7vR1</div></div><div><div class="tr-a">₹18,500</div><span class="ts ts-s">Success</span></div></div>
+          <div class="tr"><div class="tr-ic">💳</div><div><div class="tr-n">Card Payment — John D.</div><div class="tr-id">pay_Rw9sLt4cN6</div></div><div><div class="tr-a">₹1,800</div><span class="ts ts-p">Pending</span></div></div>
+          <div class="tr"><div class="tr-ic">🔄</div><div><div class="tr-n">Refund — Order #4710</div><div class="tr-id">rfnd_Yx2bFm8kQ5</div></div><div><div class="tr-a">-₹950</div><span class="ts ts-f">Refunded</span></div></div>
+        </div>
+        <div class="db-card">
+          <div class="db-ct">Account setup <span class="db-ca" onclick="dbTab('kyc')">Complete KYC →</span></div>
+          <div class="ob-step"><div class="ob-d ob-done">✓</div><div><div class="ob-tx">Account created</div><div class="ob-sx">Email verified</div></div><div class="ob-st up">Done</div></div>
+          <div class="ob-step" id="ob-kyc-step"><div class="ob-d ob-cur">!</div><div><div class="ob-tx">KYC verification</div><div class="ob-sx">Upload PAN & GST</div></div><div class="ob-st" style="color:var(--amber)" id="ob-kyc-st">Pending</div></div>
+          <div class="ob-step" id="ob-bank-step"><div class="ob-d ob-todo" id="ob-bank-d">3</div><div><div class="ob-tx">Bank account</div><div class="ob-sx">Add settlement account</div></div><div class="ob-st" style="color:var(--g400)">To do</div></div>
+          <div class="ob-step"><div class="ob-d ob-todo">4</div><div><div class="ob-tx">Go live</div><div class="ob-sx">Activate production</div></div><div class="ob-st" style="color:var(--g400)">To do</div></div>
+        </div>
       </div>
     </div>
+
+    <!-- KYC TAB -->
+    <div id="db-kyc" style="display:none">
+      <div style="max-width:680px">
+        <div style="margin-bottom:28px">
+          <div style="font-size:18px;font-weight:600;margin-bottom:6px">KYC Verification</div>
+          <div style="font-size:13px;color:var(--g600)">Complete verification to unlock higher transaction limits, instant payouts, and full platform access.</div>
+        </div>
+
+        <!-- Progress bar -->
+        <div style="background:var(--g100);border-radius:100px;height:6px;margin-bottom:32px;overflow:hidden">
+          <div id="kyc-progress-bar" style="height:100%;background:var(--black);border-radius:100px;transition:width .4s ease;width:25%"></div>
+        </div>
+
+        <!-- Step 1: Business Details -->
+        <div class="kyc-step" id="kyc-s1">
+          <div class="kyc-step-hdr">
+            <div class="kyc-step-num" id="kyc-num-1">1</div>
+            <div>
+              <div class="kyc-step-title">Business Information</div>
+              <div class="kyc-step-sub">Legal business name, type, and registration details</div>
+            </div>
+            <div class="kyc-step-status" id="kyc-st-1">In progress</div>
+          </div>
+          <div class="kyc-step-body" id="kyc-body-1">
+            <div class="kyc-form-row">
+              <div class="ff"><label>Legal Business Name</label><input type="text" id="kyc-bizname" placeholder="Shopkart India Pvt. Ltd." /></div>
+              <div class="ff"><label>Business Type</label>
+                <select id="kyc-biztype">
+                  <option value="">Select</option>
+                  <option value="private_limited">Private Limited</option>
+                  <option value="llp">LLP</option>
+                  <option value="sole_proprietor">Sole Proprietorship</option>
+                  <option value="partnership">Partnership</option>
+                </select>
+              </div>
+            </div>
+            <div class="kyc-form-row">
+              <div class="ff"><label>GST Number</label><input type="text" id="kyc-gst" placeholder="22AAAAA0000A1Z5" /></div>
+              <div class="ff"><label>PAN Number</label><input type="text" id="kyc-pan" placeholder="AAAPL1234C" /></div>
+            </div>
+            <div class="ff" style="margin-bottom:16px"><label>Registered Address</label><input type="text" id="kyc-addr" placeholder="123, MG Road, Bangalore - 560001" /></div>
+            <button class="btn bp" onclick="kycNext(1)">Save & Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 2: Document Upload -->
+        <div class="kyc-step" id="kyc-s2" style="opacity:.5;pointer-events:none">
+          <div class="kyc-step-hdr">
+            <div class="kyc-step-num" id="kyc-num-2">2</div>
+            <div>
+              <div class="kyc-step-title">Document Upload</div>
+              <div class="kyc-step-sub">PAN card, GST certificate, and incorporation proof</div>
+            </div>
+            <div class="kyc-step-status" id="kyc-st-2" style="color:var(--g400)">Pending</div>
+          </div>
+          <div class="kyc-step-body" id="kyc-body-2" style="display:none">
+            <div class="kyc-upload-row">
+              <div class="kyc-upload" id="ku-pan" onclick="kycUpload('pan')">
+                <div style="font-size:22px;margin-bottom:8px">📄</div>
+                <div style="font-size:13px;font-weight:500">PAN Card</div>
+                <div style="font-size:11px;color:var(--g400);margin-top:4px">PDF or JPG, max 5MB</div>
+                <div class="kyc-upload-status" id="ku-pan-st">Click to upload</div>
+              </div>
+              <div class="kyc-upload" id="ku-gst" onclick="kycUpload('gst')">
+                <div style="font-size:22px;margin-bottom:8px">📋</div>
+                <div style="font-size:13px;font-weight:500">GST Certificate</div>
+                <div style="font-size:11px;color:var(--g400);margin-top:4px">PDF or JPG, max 5MB</div>
+                <div class="kyc-upload-status" id="ku-gst-st">Click to upload</div>
+              </div>
+              <div class="kyc-upload" id="ku-inc" onclick="kycUpload('incorporation')">
+                <div style="font-size:22px;margin-bottom:8px">🏢</div>
+                <div style="font-size:13px;font-weight:500">Incorporation Proof</div>
+                <div style="font-size:11px;color:var(--g400);margin-top:4px">COI or Partnership deed</div>
+                <div class="kyc-upload-status" id="ku-inc-st">Click to upload</div>
+              </div>
+            </div>
+            <button class="btn bp" id="kyc-doc-btn" onclick="kycNext(2)" style="margin-top:16px;opacity:.4;pointer-events:none">Continue</button>
+          </div>
+        </div>
+
+        <!-- Step 3: Bank Account -->
+        <div class="kyc-step" id="kyc-s3" style="opacity:.5;pointer-events:none">
+          <div class="kyc-step-hdr">
+            <div class="kyc-step-num" id="kyc-num-3">3</div>
+            <div>
+              <div class="kyc-step-title">Bank Account</div>
+              <div class="kyc-step-sub">Settlement account for payouts</div>
+            </div>
+            <div class="kyc-step-status" id="kyc-st-3" style="color:var(--g400)">Pending</div>
+          </div>
+          <div class="kyc-step-body" id="kyc-body-3" style="display:none">
+            <div class="kyc-form-row">
+              <div class="ff"><label>Account Holder Name</label><input type="text" id="kyc-acname" placeholder="Shopkart India Pvt. Ltd." /></div>
+              <div class="ff"><label>Account Number</label><input type="text" id="kyc-acnum" placeholder="••••••••••••" /></div>
+            </div>
+            <div class="kyc-form-row">
+              <div class="ff"><label>IFSC Code</label><input type="text" id="kyc-ifsc" placeholder="HDFC0001234" /></div>
+              <div class="ff"><label>Bank Name</label><input type="text" id="kyc-bank" placeholder="HDFC Bank" /></div>
+            </div>
+            <button class="btn bp" onclick="kycNext(3)">Verify & Submit</button>
+          </div>
+        </div>
+
+        <!-- Step 4: Review -->
+        <div class="kyc-step" id="kyc-s4" style="opacity:.5;pointer-events:none">
+          <div class="kyc-step-hdr">
+            <div class="kyc-step-num" id="kyc-num-4">4</div>
+            <div>
+              <div class="kyc-step-title">Under Review</div>
+              <div class="kyc-step-sub">Typically completed in 1–2 business days</div>
+            </div>
+            <div class="kyc-step-status" id="kyc-st-4" style="color:var(--g400)">Pending</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- TRANSACTIONS TAB -->
+    <div id="db-transactions" style="display:none">
+      <div class="db-card" style="margin-bottom:14px">
+        <div class="db-ct">All Transactions</div>
+        <div class="tr"><div class="tr-ic">🛍</div><div><div class="tr-n">Shopkart Order #4821</div><div class="tr-id">pay_Kx8fHj2mL9 · UPI · Today 14:32</div></div><div><div class="tr-a">₹4,200</div><span class="ts ts-s">Success</span></div></div>
+        <div class="tr"><div class="tr-ic">📦</div><div><div class="tr-n">Vendor Payout — LogiCo</div><div class="tr-id">pay_Mn3kPq7vR1 · NEFT · Today 14:27</div></div><div><div class="tr-a">₹18,500</div><span class="ts ts-s">Success</span></div></div>
+        <div class="tr"><div class="tr-ic">💳</div><div><div class="tr-n">Card Payment — John D.</div><div class="tr-id">pay_Rw9sLt4cN6 · Card · Today 14:23</div></div><div><div class="tr-a">₹1,800</div><span class="ts ts-p">Pending</span></div></div>
+        <div class="tr"><div class="tr-ic">🔄</div><div><div class="tr-n">Refund — Order #4710</div><div class="tr-id">rfnd_Yx2bFm8kQ5 · Today 13:58</div></div><div><div class="tr-a">-₹950</div><span class="ts ts-f">Refunded</span></div></div>
+        <div class="tr"><div class="tr-ic">🛍</div><div><div class="tr-n">Shopkart Order #4820</div><div class="tr-id">pay_Bq7nXm3tR8 · UPI · Today 13:40</div></div><div><div class="tr-a">₹2,100</div><span class="ts ts-s">Success</span></div></div>
+        <div class="tr"><div class="tr-ic">📦</div><div><div class="tr-n">Bulk Payout — Vendors</div><div class="tr-id">pay_Cz4kLp9vS2 · IMPS · Today 13:15</div></div><div><div class="tr-a">₹54,000</div><span class="ts ts-s">Success</span></div></div>
+      </div>
+    </div>
+
+    <!-- SETTINGS TAB -->
+    <div id="db-settings" style="display:none">
+      <div style="max-width:560px">
+        <div class="db-card" style="margin-bottom:14px">
+          <div class="db-ct">Profile</div>
+          <div class="ff"><label>Business Name</label><input type="text" id="set-biz" /></div>
+          <div class="ff"><label>Email</label><input type="email" id="set-email" readonly style="background:var(--g50);color:var(--g400)" /></div>
+          <div class="ff"><label>Plan</label><input type="text" id="set-plan" readonly style="background:var(--g50);color:var(--g400)" /></div>
+          <button class="btn bp" style="margin-top:6px" onclick="saveSettings()">Save changes</button>
+        </div>
+        <div class="db-card">
+          <div class="db-ct">API Keys</div>
+          <div class="ff"><label>Live Key</label><input type="text" value="rzp_live_••••••••••••••••" readonly style="background:var(--g50);font-family:'SF Mono',monospace;font-size:13px" /></div>
+          <div class="ff"><label>Test Key</label><input type="text" value="rzp_test_••••••••••••••••" readonly style="background:var(--g50);font-family:'SF Mono',monospace;font-size:13px" /></div>
+        </div>
+      </div>
+    </div>
+
   </div>
 </div>
 
 
 <script>
-(function(){
+(function () {
 
-  /* ── STATE ── */
-  var C     = false;
-  var sid   = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
-  var t0    = Date.now();
-  var curPage = 'home';
-  var user  = null;
-  var scrollMark = {25:false,50:false,75:false,90:false};
-  var formStarted = false, sfT = null;
-  var activeDoc = 'quickstart', docT = Date.now();
-  var obsRegistered = false; /* prevent re-registering observers on every nav */
+  /* ════════════════════════════════════
+     STATE
+  ════════════════════════════════════ */
+  var C    = false;                          // consent granted
+  var sid  = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+  var t0   = Date.now();
+  var cur  = 'home';                         // current page
+  var user = null;                           // null = anonymous
+  var scrollFired = {};                      // {25:true, 50:true ...}
+  var obsRegistered = false;                 // observers registered once only
+  var kycStep = 1;                           // current KYC step (1-4)
+  var kycUploads = {};                       // { pan: true, gst: false, ... }
+  var sfT  = null;                           // signup form start time
 
-  /* ── RESTORE SESSION from localStorage ── */
+  /* ════════════════════════════════════
+     RESTORE SESSION
+     Sets user before anything else runs,
+     so boot() can re-identify immediately.
+  ════════════════════════════════════ */
   try {
     var saved = localStorage.getItem('cp_user');
     if (saved) user = JSON.parse(saved);
-  } catch(e) {}
+  } catch (e) {}
 
-  /* ── CONSENT ── */
+  /* ════════════════════════════════════
+     CONSENT
+  ════════════════════════════════════ */
   try {
     var cs = localStorage.getItem('cp_c');
-    if (cs === 'y') { document.getElementById('cb').classList.add('h'); boot(); }
+    if      (cs === 'y') { document.getElementById('cb').classList.add('h'); boot(); }
     else if (cs === 'n') { document.getElementById('cb').classList.add('h'); }
-  } catch(e) {}
+  } catch (e) {}
 
-  document.getElementById('cbA').onclick = function() {
-    try { localStorage.setItem('cp_c','y'); } catch(e) {}
+  document.getElementById('cbA').onclick = function () {
+    try { localStorage.setItem('cp_c', 'y'); } catch (e) {}
     document.getElementById('cb').classList.add('h');
     boot();
     fire('Consent Granted', { method: 'banner' });
   };
-  document.getElementById('cbD').onclick = function() {
-    try { localStorage.setItem('cp_c','n'); } catch(e) {}
+  document.getElementById('cbD').onclick = function () {
+    try { localStorage.setItem('cp_c', 'n'); } catch (e) {}
     document.getElementById('cb').classList.add('h');
   };
 
@@ -572,75 +767,70 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     if (window.analytics && !window.analytics.initialize)
       analytics.load(ANALYTICS_CONFIG.SEGMENT_WRITE_KEY);
     if (window.posthog) posthog.opt_in_capturing();
-    if (user) ident(user.merchant_id, user, true);
-    pgView(curPage);
+
+    // Re-identify restored session
+    if (user) ident(user.merchant_id, user, /* silent= */ true);
+
+    pgView(cur);
     sessionStart();
-    initScrollTrack();
+
+    window.addEventListener('scroll', onScroll, { passive: true });
+
+    // Observers registered exactly once — never again
     if (!obsRegistered) { registerObservers(); obsRegistered = true; }
   }
 
-  /* ── CORE DISPATCH ──
-     fire() always merges user context (email, merchant_id, plan) from state.
-     Props passed in always override base — so event-specific values win.
-     Key guarantee: ident() sets user state BEFORE fire() is called,
-     so user context is always available on the Merchant Logged In event. */
+  /* ════════════════════════════════════
+     CORE DISPATCH
+     fire() always stamps email + merchant_id from user state.
+     Props override base — explicit always wins.
+     ident() sets user SYNCHRONOUSLY before any fire() call,
+     so user context is always present on Merchant Logged In.
+  ════════════════════════════════════ */
   function fire(ev, props) {
     if (!C) return;
-    var base = {
+    var p = Object.assign({
       session_id:  sid,
-      page:        curPage,
+      page:        cur,
       ts:          new Date().toISOString(),
       elapsed_sec: Math.round((Date.now() - t0) / 1000),
       user_type:   user ? 'merchant' : 'anonymous',
-      email:       user ? user.email       : null,
-      merchant_id: user ? user.merchant_id : null,
-      plan:        user ? user.plan        : null
-    };
-    var p = Object.assign({}, base, props || {});
+      email:       user ? user.email        : null,
+      merchant_id: user ? user.merchant_id  : null,
+      plan:        user ? user.plan         : null
+    }, props || {});
     if (window.analytics && analytics.track) analytics.track(ev, p);
     if (window.posthog  && posthog.capture)  posthog.capture(ev, p);
   }
 
-  /* ident() always sets user in JS state FIRST (synchronous, no conditions).
-     Segment/PostHog calls happen after — only if consent is granted.
-     This order guarantees fire() called right after ident() always
-     sees the full user object including email and all traits. */
   function ident(mid, traits, silent) {
-    // 1. Set JS state immediately — no consent check, always runs
+    // Always set JS state first — no consent check
     user = Object.assign({ merchant_id: mid }, traits);
-
-    // 2. Persist session so user stays logged in across navigation
-    if (!silent) {
-      try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch(e) {}
-    }
-
-    // 3. Send to Segment + PostHog only if consent was granted
+    if (!silent)
+      try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
+    // Send to tools only if consented
     if (!C) return;
     if (window.analytics && analytics.identify) analytics.identify(mid, traits);
     if (window.posthog  && posthog.identify)   posthog.identify(mid, traits);
   }
 
-  /* ── PAGE VIEW ── */
+  /* ════════════════════════════════════
+     PAGE VIEW + SESSION
+  ════════════════════════════════════ */
   function pgView(name) {
     var q = new URLSearchParams(window.location.search);
     if (window.analytics && analytics.page)
       analytics.page(name, {
-        path: '/' + name,
-        referrer: document.referrer || 'direct',
-        utm_source:   q.get('utm_source'),
-        utm_medium:   q.get('utm_medium'),
-        utm_campaign: q.get('utm_campaign'),
-        session_id:   sid,
-        email:        user ? user.email       : null,
-        merchant_id:  user ? user.merchant_id : null
+        path: '/' + name, referrer: document.referrer || 'direct',
+        utm_source: q.get('utm_source'), utm_medium: q.get('utm_medium'),
+        utm_campaign: q.get('utm_campaign'), session_id: sid,
+        email: user ? user.email : null, merchant_id: user ? user.merchant_id : null
       });
-    if (window.posthog)
-      posthog.capture('$pageview', { page_name: name, session_id: sid });
+    if (window.posthog) posthog.capture('$pageview', { page_name: name, session_id: sid });
   }
 
   function sessionStart() {
-    var ref = document.referrer || 'direct';
-    var ch  = 'direct';
+    var ref = document.referrer || 'direct', ch = 'direct';
     if (/google|bing|yahoo/.test(ref)) ch = 'organic_search';
     if (/linkedin/.test(ref))           ch = 'linkedin';
     if (/twitter|x\.com/.test(ref))    ch = 'social';
@@ -648,131 +838,132 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     if (q.get('utm_medium') === 'cpc')   ch = 'paid_search';
     if (q.get('utm_medium') === 'email') ch = 'email';
     var ret = false;
-    try { ret = !!localStorage.getItem('cp_ret'); } catch(e) {}
+    try { ret = !!localStorage.getItem('cp_ret'); } catch (e) {}
     fire('Session Started', {
-      referrer:     ref,
-      channel:      ch,
-      utm_source:   q.get('utm_source'),
-      utm_medium:   q.get('utm_medium'),
-      utm_campaign: q.get('utm_campaign'),
-      is_returning: ret,
-      device_type:  window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1024 ? 'tablet' : 'desktop',
-      language:     navigator.language,
-      timezone:     Intl ? Intl.DateTimeFormat().resolvedOptions().timeZone : null
+      referrer: ref, channel: ch,
+      utm_source: q.get('utm_source'), utm_medium: q.get('utm_medium'),
+      utm_campaign: q.get('utm_campaign'), is_returning: ret,
+      device_type: window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1024 ? 'tablet' : 'desktop',
+      language: navigator.language,
+      timezone: typeof Intl !== 'undefined' ? Intl.DateTimeFormat().resolvedOptions().timeZone : null
     });
-    try { localStorage.setItem('cp_ret','1'); } catch(e) {}
+    try { localStorage.setItem('cp_ret', '1'); } catch (e) {}
   }
 
-  function initScrollTrack() {
-    window.addEventListener('scroll', function() {
-      var pct = Math.round((window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight)) * 100);
-      [25,50,75,90].forEach(function(m) {
-        if (!scrollMark[m] && pct >= m) {
-          scrollMark[m] = true;
-          fire('Scroll Depth Reached', { depth_percent: m });
-        }
-      });
-    }, { passive: true });
+  /* ════════════════════════════════════
+     SCROLL DEPTH
+     Single listener added once in boot().
+  ════════════════════════════════════ */
+  function onScroll() {
+    var pct = Math.round((window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight)) * 100);
+    [25, 50, 75, 90].forEach(function (m) {
+      if (!scrollFired[m] && pct >= m) {
+        scrollFired[m] = true;
+        fire('Scroll Depth Reached', { depth_percent: m });
+      }
+    });
   }
 
-  /* ── OBSERVERS — registered ONCE, not on every navigation ── */
+  /* ════════════════════════════════════
+     INTERSECTION OBSERVERS
+     Called once. Each observer has its own
+     `seen` flag — no shared state, no dupes.
+  ════════════════════════════════════ */
   function registerObservers() {
+    function observe(el, threshold, cb) {
+      new IntersectionObserver(function (entries) {
+        if (entries[0].isIntersecting) { cb(); }
+      }, { threshold: threshold }).observe(el);
+    }
 
-    /* Feature cards */
-    document.querySelectorAll('.fc').forEach(function(el) {
-      var feat = el.dataset.feat;
-      var seen = false;
-      new IntersectionObserver(function(entries) {
-        if (entries[0].isIntersecting && !seen && C) {
+    // Feature cards — seen flag per element, unobserved after first fire
+    document.querySelectorAll('.fc').forEach(function (el) {
+      var feat = el.dataset.feat, seen = false;
+      new IntersectionObserver(function (entries, obs) {
+        if (entries[0].isIntersecting && !seen) {
           seen = true;
           fire('Feature Viewed', { feature_id: feat });
+          obs.unobserve(el);
         }
       }, { threshold: 0.6 }).observe(el);
 
       var hs = null;
-      el.addEventListener('mouseenter', function() { hs = Date.now(); });
-      el.addEventListener('mouseleave', function() {
-        if (hs && C) {
-          var ms = Date.now() - hs;
-          if (ms > 1000) fire('Feature Engaged', { feature_id: feat, hover_ms: ms });
-          hs = null;
-        }
+      el.addEventListener('mouseenter', function () { hs = Date.now(); });
+      el.addEventListener('mouseleave', function () {
+        if (hs) { var ms = Date.now() - hs; if (ms > 1000) fire('Feature Engaged', { feature_id: feat, hover_ms: ms }); hs = null; }
       });
     });
 
-    /* Pricing plans */
-    document.querySelectorAll('.plan').forEach(function(el) {
-      var plan = el.dataset.plan;
-      var seen = false;
-      new IntersectionObserver(function(entries) {
-        if (entries[0].isIntersecting && !seen && C) {
-          seen = true;
-          fire('Pricing Plan Viewed', { plan_name: plan });
+    // Pricing plans
+    document.querySelectorAll('.plan').forEach(function (el) {
+      var plan = el.dataset.plan, seen = false;
+      new IntersectionObserver(function (entries, obs) {
+        if (entries[0].isIntersecting && !seen) {
+          seen = true; fire('Pricing Plan Viewed', { plan_name: plan }); obs.unobserve(el);
         }
       }, { threshold: 0.7 }).observe(el);
     });
 
-    /* FAQ items */
-    document.querySelectorAll('.faq-i').forEach(function(el) {
-      var faq = el.dataset.faq;
-      var seen = false;
-      new IntersectionObserver(function(entries) {
-        if (entries[0].isIntersecting && !seen && C) {
-          seen = true;
-          fire('FAQ Viewed', { faq_id: faq });
+    // FAQ
+    document.querySelectorAll('.faq-i').forEach(function (el) {
+      var faq = el.dataset.faq, seen = false;
+      new IntersectionObserver(function (entries, obs) {
+        if (entries[0].isIntersecting && !seen) {
+          seen = true; fire('FAQ Viewed', { faq_id: faq }); obs.unobserve(el);
         }
       }, { threshold: 0.8 }).observe(el);
     });
 
-    /* Dashboard stat cards */
-    document.querySelectorAll('.db-sc').forEach(function(el) {
-      var stat = el.dataset.stat;
-      var seen = false;
-      new IntersectionObserver(function(entries) {
-        if (entries[0].isIntersecting && !seen && C) {
-          seen = true;
-          fire('Dashboard Stat Viewed', { stat_id: stat });
+    // Dashboard stat cards
+    document.querySelectorAll('.db-sc').forEach(function (el) {
+      var stat = el.dataset.stat, seen = false;
+      new IntersectionObserver(function (entries, obs) {
+        if (entries[0].isIntersecting && !seen) {
+          seen = true; fire('Dashboard Stat Viewed', { stat_id: stat }); obs.unobserve(el);
         }
       }, { threshold: 0.9 }).observe(el);
     });
   }
 
-  /* ── NAVIGATION ── */
-  window.go = function(page, src) {
-    var prev = curPage;
+  /* ════════════════════════════════════
+     NAVIGATION
+  ════════════════════════════════════ */
+  window.go = function (page, src) {
+    var prev = cur;
 
-    /* auth guards */
-    if (page === 'login'     && user) page = 'dashboard';
+    // Auth guards
+    if (page === 'login'     && user)  page = 'dashboard';
     if (page === 'dashboard' && !user) page = 'login';
 
-    document.querySelectorAll('.pg, .db-pg').forEach(function(p) { p.classList.remove('on'); });
-    document.querySelectorAll('.n-links a').forEach(function(a) {
+    document.querySelectorAll('.pg, .db-pg').forEach(function (p) { p.classList.remove('on'); });
+    document.querySelectorAll('.n-links a').forEach(function (a) {
       a.classList.toggle('active', a.dataset.p === page);
     });
-
     var el = document.getElementById(page === 'dashboard' ? 'pg-db' : 'pg-' + page);
     if (el) el.classList.add('on');
 
     window.scrollTo(0, 0);
-    scrollMark = {25:false,50:false,75:false,90:false};
+    scrollFired = {};
     t0 = Date.now();
-    curPage = page;
+    cur = page;
 
     updateNav();
+    updateHero();   // swap hero CTAs based on auth state
 
     if (C) {
       pgView(page);
       fire('Page Navigated', { destination: page, source_page: src || prev });
     }
 
-    /* scroll reveal */
-    setTimeout(function() {
-      document.querySelectorAll('.reveal').forEach(function(el) { el.classList.remove('on'); });
+    setTimeout(function () {
+      document.querySelectorAll('.reveal').forEach(function (r) { r.classList.remove('on'); });
       initReveal();
     }, 50);
   };
 
-  /* ── NAV ── */
+  /* ════════════════════════════════════
+     NAV — single source of truth
+  ════════════════════════════════════ */
   function updateNav() {
     var nr = document.getElementById('n-right');
     if (user) {
@@ -780,7 +971,7 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       nr.innerHTML =
         '<span style="font-size:13px;color:var(--g600);font-weight:500">' + name + '</span>' +
         '<button class="btn bp" onclick="go(\'dashboard\')">Dashboard</button>' +
-        '<button class="btn bg" onclick="doLogout()">Log out</button>';
+        '<button class="btn bg"  onclick="doLogout()">Log out</button>';
     } else {
       nr.innerHTML =
         '<button class="btn bg" onclick="go(\'login\')">Log in</button>' +
@@ -788,9 +979,200 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     }
   }
 
-  /* ── AUTH TABS ── */
-  window.authTab = function(tab) {
-    document.getElementById('t-login').classList.toggle('on', tab === 'login');
+  /* ════════════════════════════════════
+     HERO ACTIONS — swap based on auth
+  ════════════════════════════════════ */
+  function updateHero() {
+    var wrap = document.getElementById('hero-actions');
+    if (!wrap) return;
+    if (user) {
+      wrap.innerHTML =
+        '<button class="btn bp bl" onclick="go(\'dashboard\')">Go to dashboard</button>' +
+        '<button class="btn bg bl" onclick="go(\'docs\')">See the docs</button>';
+    } else {
+      wrap.innerHTML =
+        '<button class="btn bp bl" id="h-cta1" onclick="go(\'login\')">Create account</button>' +
+        '<button class="btn bg bl" id="h-cta2" onclick="go(\'docs\')">See the docs</button>';
+      // Re-attach analytics listeners on freshly created elements
+      var c1 = document.getElementById('h-cta1');
+      var c2 = document.getElementById('h-cta2');
+      if (c1) c1.addEventListener('click', function () { fire('CTA Clicked', { cta_id: 'hero_create_account', location: 'hero', type: 'primary' }); });
+      if (c2) c2.addEventListener('click', function () { fire('CTA Clicked', { cta_id: 'hero_see_docs', location: 'hero', type: 'secondary' }); });
+    }
+  }
+
+  /* ════════════════════════════════════
+     DASHBOARD TABS
+  ════════════════════════════════════ */
+  window.dbTab = function (tab) {
+    ['overview', 'kyc', 'transactions', 'settings'].forEach(function (t) {
+      document.getElementById('db-' + t).style.display   = t === tab ? '' : 'none';
+      document.getElementById('dbt-' + t).classList.toggle('on', t === tab);
+    });
+    fire('Dashboard Tab Viewed', { tab: tab });
+    // Populate settings fields from user state
+    if (tab === 'settings' && user) {
+      var sb = document.getElementById('set-biz');   if (sb) sb.value = user.business_name || '';
+      var se = document.getElementById('set-email'); if (se) se.value = user.email || '';
+      var sp = document.getElementById('set-plan');  if (sp) sp.value = user.plan || '';
+    }
+  };
+
+  window.saveSettings = function () {
+    var biz = document.getElementById('set-biz').value.trim();
+    if (biz && user) {
+      user.business_name = biz;
+      try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
+      fire('Settings Saved', { field: 'business_name', new_value: biz });
+    }
+  };
+
+  /* ════════════════════════════════════
+     KYC FLOW
+     Each step fires a distinct track event
+     so the full onboarding funnel is visible
+     in Segment debugger and PostHog funnels.
+  ════════════════════════════════════ */
+  window.dbTab = window.dbTab; // ensure exposed
+
+  window.kycNext = function (step) {
+    // Validate current step fields
+    if (step === 1) {
+      var biz  = document.getElementById('kyc-bizname').value.trim();
+      var gst  = document.getElementById('kyc-gst').value.trim();
+      var pan  = document.getElementById('kyc-pan').value.trim();
+      if (!biz || !gst || !pan) { showKycErr('Please fill in all required fields.'); return; }
+      fire('KYC Step Completed', {
+        step: 1, step_name: 'business_information',
+        business_name: biz, gst_provided: !!gst, pan_provided: !!pan,
+        kyc_status: 'step_1_done'
+      });
+      // Update user traits
+      if (user) {
+        user.kyc_status = 'step_1_done'; user.onboarding_step = 'documents_pending';
+        try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
+        if (window.analytics && analytics.identify) analytics.identify(user.merchant_id, user);
+      }
+    }
+    if (step === 2) {
+      var allUploaded = kycUploads['pan'] && kycUploads['gst'] && kycUploads['incorporation'];
+      if (!allUploaded) { showKycErr('Please upload all required documents.'); return; }
+      fire('KYC Step Completed', {
+        step: 2, step_name: 'document_upload',
+        docs_uploaded: Object.keys(kycUploads).filter(function (k) { return kycUploads[k]; }),
+        kyc_status: 'step_2_done'
+      });
+      if (user) {
+        user.kyc_status = 'step_2_done'; user.onboarding_step = 'bank_pending';
+        try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
+        if (window.analytics && analytics.identify) analytics.identify(user.merchant_id, user);
+      }
+    }
+    if (step === 3) {
+      var acname = document.getElementById('kyc-acname').value.trim();
+      var ifsc   = document.getElementById('kyc-ifsc').value.trim();
+      if (!acname || !ifsc) { showKycErr('Please fill in bank account details.'); return; }
+      fire('KYC Step Completed', {
+        step: 3, step_name: 'bank_account',
+        bank_provided: true, kyc_status: 'under_review'
+      });
+      fire('KYC Submitted', {
+        steps_completed: 3, kyc_status: 'under_review',
+        time_to_submit_sec: Math.round((Date.now() - t0) / 1000)
+      });
+      if (user) {
+        user.kyc_status = 'under_review'; user.onboarding_step = 'under_review';
+        try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
+        if (window.analytics && analytics.identify) analytics.identify(user.merchant_id, user);
+      }
+    }
+
+    // Advance to next step
+    kycStep = step + 1;
+    advanceKycUI(step);
+  };
+
+  function advanceKycUI(completedStep) {
+    // Mark completed step
+    var num = document.getElementById('kyc-num-' + completedStep);
+    var st  = document.getElementById('kyc-st-'  + completedStep);
+    var body = document.getElementById('kyc-body-' + completedStep);
+    if (num) { num.textContent = '✓'; num.className = 'kyc-step-num done'; }
+    if (st)  { st.textContent = 'Completed'; st.className = 'kyc-step-status done'; }
+    if (body) body.style.display = 'none';
+
+    // Unlock next step
+    var next = completedStep + 1;
+    var nextStep = document.getElementById('kyc-s' + next);
+    var nextBody = document.getElementById('kyc-body-' + next);
+    var nextNum  = document.getElementById('kyc-num-' + next);
+    var nextSt   = document.getElementById('kyc-st-'  + next);
+    if (nextStep) { nextStep.style.opacity = '1'; nextStep.style.pointerEvents = 'auto'; }
+    if (nextBody) nextBody.style.display = '';
+    if (nextNum)  nextNum.className = 'kyc-step-num active';
+    if (nextSt)   { nextSt.textContent = 'In progress'; nextSt.style.color = ''; }
+
+    // Progress bar: step1=25, step2=50, step3=75, step4=100
+    var bar = document.getElementById('kyc-progress-bar');
+    if (bar) bar.style.width = (next * 25) + '%';
+
+    // Update dashboard KYC alert
+    if (completedStep === 3) {
+      var alrt = document.getElementById('db-kyc-alrt');
+      if (alrt) alrt.style.display = 'none';
+      var kycStep4 = document.getElementById('kyc-s4');
+      if (kycStep4) { kycStep4.style.opacity = '1'; kycStep4.style.pointerEvents = 'auto'; }
+    }
+    // Update sidebar onboarding checklist
+    if (completedStep === 1) {
+      var kst = document.getElementById('ob-kyc-st');
+      if (kst) { kst.textContent = 'In progress'; kst.style.color = 'var(--blue)'; }
+    }
+    if (completedStep === 3) {
+      var kst2 = document.getElementById('ob-kyc-st');
+      if (kst2) { kst2.textContent = 'Submitted'; kst2.style.color = 'var(--green)'; }
+      var kbd = document.getElementById('ob-kyc-step');
+      if (kbd) kbd.querySelector('.ob-d').className = 'ob-d ob-done';
+    }
+  }
+
+  function showKycErr(msg) {
+    var e = document.getElementById('kyc-err');
+    if (!e) {
+      e = document.createElement('div');
+      e.id = 'kyc-err';
+      e.style.cssText = 'background:var(--red-l);color:var(--red);font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA';
+      var activeBody = document.getElementById('kyc-body-' + kycStep);
+      if (activeBody) activeBody.insertBefore(e, activeBody.firstChild);
+    }
+    e.textContent = msg;
+    setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 3000);
+  }
+
+  window.kycUpload = function (docType) {
+    // Simulates file upload — in production this triggers a real file input
+    var el = document.getElementById('ku-' + docType);
+    var st = document.getElementById('ku-' + docType + '-st');
+    if (!el || !st) return;
+
+    el.classList.add('uploaded');
+    st.textContent = '✓ Uploaded';
+    st.className = 'kyc-upload-status ok';
+    kycUploads[docType] = true;
+
+    fire('KYC Document Uploaded', { doc_type: docType, step: 2 });
+
+    // Enable continue button once all 3 uploaded
+    var allDone = kycUploads['pan'] && kycUploads['gst'] && kycUploads['incorporation'];
+    var btn = document.getElementById('kyc-doc-btn');
+    if (btn && allDone) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
+  };
+
+  /* ════════════════════════════════════
+     AUTH TABS
+  ════════════════════════════════════ */
+  window.authTab = function (tab) {
+    document.getElementById('t-login').classList.toggle('on',  tab === 'login');
     document.getElementById('t-signup').classList.toggle('on', tab === 'signup');
     document.getElementById('lf').style.display = tab === 'login'  ? '' : 'none';
     document.getElementById('sf').style.display = tab === 'signup' ? '' : 'none';
@@ -798,12 +1180,13 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     fire('Auth Tab Switched', { tab: tab });
   };
 
-  /* ── LOGIN ── */
-  window.doLogin = function(e) {
+  /* ════════════════════════════════════
+     LOGIN
+  ════════════════════════════════════ */
+  window.doLogin = function (e) {
     e.preventDefault();
     var email = document.getElementById('l-email').value.trim();
     var pass  = document.getElementById('l-pass').value.trim();
-
     var errEl = document.getElementById('l-err');
     errEl.style.display = 'none';
 
@@ -813,73 +1196,62 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       return;
     }
 
-    /* derive display name from email */
     var firstName = email.split('@')[0]
       .replace(/[._-]/g, ' ')
-      .replace(/\b\w/g, function(l) { return l.toUpperCase(); });
+      .replace(/\b\w/g, function (l) { return l.toUpperCase(); });
 
     var traits = {
-      email:                      email,
-      firstName:                  firstName,
-      merchant_id:                'mrc_8821',
-      business_name:              'Shopkart India',
-      business_type:              'ecommerce',
-      plan:                       'growth',
-      kyc_status:                 'pending',
-      onboarding_step:            'kyc_pending',
-      days_since_last_login:      14,
-      support_tickets_open:       3,
-      preferred_payment_method:   'UPI',
-      preferred_corridor:         'INR-USD',
-      risk_score:                 0.72,
-      trust_score:                0.41,
-      escrow_tier:                'standard',
-      account_age_days:           135,
-      signup_date:                '2024-09-12',
-      transaction_volume_30d:     241800,
-      transaction_count_30d:      1847,
-      is_returning_user:          true
+      email:                    email,
+      firstName:                firstName,
+      merchant_id:              'mrc_8821',
+      business_name:            'Shopkart India',
+      business_type:            'ecommerce',
+      plan:                     'growth',
+      kyc_status:               'pending',
+      onboarding_step:          'kyc_pending',
+      days_since_last_login:    14,
+      support_tickets_open:     3,
+      preferred_payment_method: 'UPI',
+      preferred_corridor:       'INR-USD',
+      risk_score:               0.72,
+      trust_score:              0.41,
+      escrow_tier:              'standard',
+      account_age_days:         135,
+      signup_date:              '2024-09-12',
+      transaction_volume_30d:   241800,
+      transaction_count_30d:    1847,
+      is_returning_user:        true
     };
 
-    // 1. ident() sets user state synchronously — must come before fire()
-    //    so that base payload in fire() has email + merchant_id
+    // 1. ident() — sets user state synchronously, then sends to Segment
     ident('mrc_8821', traits);
 
-    // 2. fire() — all traits explicitly included on the event itself.
-    //    Never rely solely on the identify() call being visible in debugger;
-    //    the track event must carry the full context so Segment + PostHog
-    //    can use it without a profile join.
+    // 2. fire() — full traits on the track event, not just on identify
+    //    user is already set by ident() so base payload has email + merchant_id
     fire('Merchant Logged In', traits);
 
     mountDash(traits);
     go('dashboard', 'login');
   };
 
-  /* ── SIGNUP ── */
-  window.doSignup = function(e) {
+  /* ════════════════════════════════════
+     SIGNUP
+  ════════════════════════════════════ */
+  window.doSignup = function (e) {
     e.preventDefault();
     var first = document.getElementById('s-first').value.trim();
     var last  = document.getElementById('s-last').value.trim();
     var email = document.getElementById('s-email').value.trim();
     var biz   = document.getElementById('s-biz').value.trim();
     var btype = document.getElementById('s-btype').value;
-
     var errEl = document.getElementById('s-err');
     errEl.style.display = 'none';
 
-    if (!email) {
-      errEl.textContent = 'Work email is required.';
-      errEl.style.display = 'block';
-      return;
-    }
-    if (!biz) {
-      errEl.textContent = 'Business name is required.';
-      errEl.style.display = 'block';
-      return;
-    }
+    if (!email) { errEl.textContent = 'Work email is required.'; errEl.style.display = 'block'; return; }
+    if (!biz)   { errEl.textContent = 'Business name is required.'; errEl.style.display = 'block'; return; }
 
-    var mid = 'mrc_' + Math.random().toString(36).substr(2,6).toUpperCase();
-    var derivedFirst = first || email.split('@')[0].split('.')[0].replace(/\b\w/g, function(l){ return l.toUpperCase(); });
+    var mid = 'mrc_' + Math.random().toString(36).substr(2, 6).toUpperCase();
+    var derivedFirst = first || email.split('@')[0].replace(/[._-]/g,' ').replace(/\b\w/g, function (l) { return l.toUpperCase(); });
 
     var traits = {
       email:                    email,
@@ -905,17 +1277,16 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       signup_form_duration_sec: sfT ? Math.round((Date.now() - sfT) / 1000) : null
     };
 
-    // Same pattern: ident() first, then fire() with full traits
     ident(mid, traits);
     fire('Merchant Signed Up', traits);
-
     mountDash(traits);
     go('dashboard', 'signup');
   };
 
-  /* ── DASHBOARD MOUNT ── */
+  /* ════════════════════════════════════
+     DASHBOARD MOUNT
+  ════════════════════════════════════ */
   function mountDash(t) {
-    // Render UI
     var name = t.firstName || (t.email ? t.email.split('@')[0] : 'Merchant');
     document.getElementById('db-name').textContent = name;
     document.getElementById('db-sub').textContent  =
@@ -924,107 +1295,109 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     var kycIncomplete = t.kyc_status === 'not_started' || t.kyc_status === 'pending';
     document.getElementById('db-kyc-alrt').style.display = kycIncomplete ? 'flex' : 'none';
 
-    // Compute derived signals and merge onto traits before firing.
-    // Full traits object on the event — Segment/PostHog never need a join.
-    var payload = Object.assign({}, t, {
+    fire('Dashboard Loaded', Object.assign({}, t, {
       is_churn_risk: (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
       is_high_risk:  (t.risk_score  || 0) > 0.6,
       is_high_trust: (t.trust_score || 0) > 0.7
-    });
-    fire('Dashboard Loaded', payload);
+    }));
   }
 
-  /* ── LOGOUT ── */
-  window.doLogout = function() {
+  /* ════════════════════════════════════
+     LOGOUT
+  ════════════════════════════════════ */
+  window.doLogout = function () {
     fire('Merchant Logged Out', {
       email:       user ? user.email       : null,
       merchant_id: user ? user.merchant_id : null,
       session_duration_sec: Math.round((Date.now() - t0) / 1000)
     });
     user = null;
-    try { localStorage.removeItem('cp_user'); } catch(e) {}
+    try { localStorage.removeItem('cp_user'); } catch (e) {}
     if (window.analytics && analytics.reset) analytics.reset();
     if (window.posthog  && posthog.reset)   posthog.reset();
+    kycStep = 1; kycUploads = {};
     go('home', 'logout');
   };
 
-  /* ── CTA CLICKS ── */
-  document.getElementById('h-cta1').addEventListener('click', function() {
-    fire('CTA Clicked', { cta_id: 'hero_create_account', location: 'hero', type: 'primary' });
-  });
-  document.getElementById('h-cta2').addEventListener('click', function() {
-    fire('CTA Clicked', { cta_id: 'hero_see_docs', location: 'hero', type: 'secondary' });
-  });
-  document.getElementById('h-bot-cta').addEventListener('click', function() {
+  /* ════════════════════════════════════
+     CTA / PLAN / DOCS TRACKING
+  ════════════════════════════════════ */
+  document.getElementById('h-bot-cta').addEventListener('click', function () {
     fire('CTA Clicked', { cta_id: 'bottom_get_started', location: 'cta_band', type: 'primary' });
   });
 
-  /* ── PRICING PLAN SELECT ── */
-  window.selectPlan = function(plan) {
-    fire('Pricing Plan Selected', { plan_name: plan, email: user ? user.email : null });
+  window.selectPlan = function (plan) {
+    fire('Pricing Plan Selected', { plan_name: plan });
     go('login', 'pricing_' + plan);
   };
 
-  /* ── DOCS ── */
   var docCat = {
-    'quickstart':'getting_started','authentication':'getting_started','testing':'getting_started',
-    'create-payment':'payments','payment-methods':'payments','webhooks':'payments',
-    'payouts':'payouts','escrow':'payouts','fraud':'risk','kyc':'compliance'
+    'quickstart': 'getting_started', 'authentication': 'getting_started', 'testing': 'getting_started',
+    'create-payment': 'payments', 'payment-methods': 'payments', 'webhooks': 'payments',
+    'payouts': 'payouts', 'escrow': 'payouts', 'fraud': 'risk', 'kyc': 'compliance'
   };
-  window.setDoc = function(id) {
+  var activeDoc = 'quickstart', docT = Date.now();
+  window.setDoc = function (id) {
     var dwell = Date.now() - docT;
-    if (dwell > 2000 && C) fire('Doc Read', { doc_id: activeDoc, dwell_ms: dwell });
-    document.querySelectorAll('.sb-link').forEach(function(l) {
-      l.classList.toggle('on', l.dataset.doc === id);
-    });
+    if (dwell > 2000) fire('Doc Read', { doc_id: activeDoc, dwell_ms: dwell });
+    document.querySelectorAll('.sb-link').forEach(function (l) { l.classList.toggle('on', l.dataset.doc === id); });
     activeDoc = id; docT = Date.now();
     fire('Doc Viewed', { doc_id: id, doc_category: docCat[id] || null });
   };
 
-  /* ── SIGNUP FORM TRACKING ── */
-  window.trackSField = function(f, v) {
-    fire('Signup Field Changed', { field: f, value: v });
-  };
-  ['s-first','s-last','s-email','s-biz'].forEach(function(fid) {
+  /* ════════════════════════════════════
+     SIGNUP FORM FIELD TRACKING
+  ════════════════════════════════════ */
+  window.trackSField = function (f, v) { fire('Signup Field Changed', { field: f, value: v }); };
+  var formStarted = false;
+  ['s-first', 's-last', 's-email', 's-biz'].forEach(function (fid) {
     var el = document.getElementById(fid);
     if (!el) return;
-    el.addEventListener('focus', function() {
-      if (!formStarted && C) { formStarted = true; fire('Signup Form Started', {}); }
+    el.addEventListener('focus', function () {
+      if (!formStarted) { formStarted = true; fire('Signup Form Started', {}); }
     });
-    el.addEventListener('blur', function() {
-      if (el.value.trim() && C) fire('Signup Field Completed', { field: fid.replace('s-','') });
+    el.addEventListener('blur', function () {
+      if (el.value.trim()) fire('Signup Field Completed', { field: fid.replace('s-', '') });
     });
   });
 
-  /* ── PAGE EXIT ── */
-  window.addEventListener('beforeunload', function() {
+  /* ════════════════════════════════════
+     PAGE EXIT
+  ════════════════════════════════════ */
+  window.addEventListener('beforeunload', function () {
     if (!C) return;
     fire('Session Ended', {
       session_duration_sec: Math.round((Date.now() - t0) / 1000),
-      max_scroll_depth: Object.keys(scrollMark).reduce(function(m,k){ return scrollMark[k] ? parseInt(k) : m; }, 0),
-      last_page: curPage,
-      is_merchant: !!user
+      max_scroll_depth: [90,75,50,25].find(function(m){ return scrollFired[m]; }) || 0,
+      last_page: cur, is_merchant: !!user
     });
   });
 
-  /* ── SCROLL REVEAL ── */
+  /* ════════════════════════════════════
+     SCROLL REVEAL
+  ════════════════════════════════════ */
   function initReveal() {
-    var obs = new IntersectionObserver(function(entries) {
-      entries.forEach(function(e) {
-        if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); }
-      });
+    var obs = new IntersectionObserver(function (entries) {
+      entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); } });
     }, { threshold: 0.1 });
-    document.querySelectorAll('.reveal').forEach(function(el) { obs.observe(el); });
+    document.querySelectorAll('.reveal').forEach(function (el) { obs.observe(el); });
   }
 
-  /* ── INIT ── */
+  /* ════════════════════════════════════
+     INIT
+  ════════════════════════════════════ */
   updateNav();
+  updateHero();
   initReveal();
-  document.querySelectorAll('[data-p="home"]').forEach(function(a) { a.classList.add('active'); });
-  if (C) { initScrollTrack(); registerObservers(); obsRegistered = true; }
+  document.querySelectorAll('[data-p="home"]').forEach(function (a) { a.classList.add('active'); });
 
-  /* if session restored, mount dashboard silently so nav shows correctly */
-  if (user) { mountDash(user); }
+  // If session was restored, mount dashboard so name/sub are populated
+  if (user) mountDash(user);
+
+  if (C) {
+    window.addEventListener('scroll', onScroll, { passive: true });
+    if (!obsRegistered) { registerObservers(); obsRegistered = true; }
+  }
 
 })();
 </script>
