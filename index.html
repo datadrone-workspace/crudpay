@@ -579,7 +579,11 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     if (!obsRegistered) { registerObservers(); obsRegistered = true; }
   }
 
-  /* ── CORE DISPATCH ── */
+  /* ── CORE DISPATCH ──
+     fire() always merges user context (email, merchant_id, plan) from state.
+     Props passed in always override base — so event-specific values win.
+     Key guarantee: ident() sets user state BEFORE fire() is called,
+     so user context is always available on the Merchant Logged In event. */
   function fire(ev, props) {
     if (!C) return;
     var base = {
@@ -589,21 +593,31 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       elapsed_sec: Math.round((Date.now() - t0) / 1000),
       user_type:   user ? 'merchant' : 'anonymous',
       email:       user ? user.email       : null,
-      merchant_id: user ? user.merchant_id : null
+      merchant_id: user ? user.merchant_id : null,
+      plan:        user ? user.plan        : null
     };
     var p = Object.assign({}, base, props || {});
     if (window.analytics && analytics.track) analytics.track(ev, p);
     if (window.posthog  && posthog.capture)  posthog.capture(ev, p);
   }
 
+  /* ident() always sets user in JS state FIRST (synchronous, no conditions).
+     Segment/PostHog calls happen after — only if consent is granted.
+     This order guarantees fire() called right after ident() always
+     sees the full user object including email and all traits. */
   function ident(mid, traits, silent) {
+    // 1. Set JS state immediately — no consent check, always runs
     user = Object.assign({ merchant_id: mid }, traits);
+
+    // 2. Persist session so user stays logged in across navigation
     if (!silent) {
       try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch(e) {}
     }
+
+    // 3. Send to Segment + PostHog only if consent was granted
     if (!C) return;
     if (window.analytics && analytics.identify) analytics.identify(mid, traits);
-    if (window.posthog  && posthog.identify)  posthog.identify(mid, traits);
+    if (window.posthog  && posthog.identify)   posthog.identify(mid, traits);
   }
 
   /* ── PAGE VIEW ── */
@@ -827,16 +841,15 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       is_returning_user:          true
     };
 
+    // 1. ident() sets user state synchronously — must come before fire()
+    //    so that base payload in fire() has email + merchant_id
     ident('mrc_8821', traits);
-    fire('Merchant Logged In', {
-      email:                 email,
-      merchant_id:           'mrc_8821',
-      plan:                  'growth',
-      kyc_status:            'pending',
-      days_since_last_login: 14,
-      risk_score:            0.72,
-      trust_score:           0.41
-    });
+
+    // 2. fire() — all traits explicitly included on the event itself.
+    //    Never rely solely on the identify() call being visible in debugger;
+    //    the track event must carry the full context so Segment + PostHog
+    //    can use it without a profile join.
+    fire('Merchant Logged In', traits);
 
     mountDash(traits);
     go('dashboard', 'login');
@@ -892,15 +905,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       signup_form_duration_sec: sfT ? Math.round((Date.now() - sfT) / 1000) : null
     };
 
+    // Same pattern: ident() first, then fire() with full traits
     ident(mid, traits);
-    fire('Merchant Signed Up', {
-      email:           email,
-      merchant_id:     mid,
-      business_type:   btype,
-      business_name:   biz,
-      onboarding_step: 'account_created',
-      signup_form_duration_sec: traits.signup_form_duration_sec
-    });
+    fire('Merchant Signed Up', traits);
 
     mountDash(traits);
     go('dashboard', 'signup');
@@ -908,6 +915,7 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
 
   /* ── DASHBOARD MOUNT ── */
   function mountDash(t) {
+    // Render UI
     var name = t.firstName || (t.email ? t.email.split('@')[0] : 'Merchant');
     document.getElementById('db-name').textContent = name;
     document.getElementById('db-sub').textContent  =
@@ -916,26 +924,14 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     var kycIncomplete = t.kyc_status === 'not_started' || t.kyc_status === 'pending';
     document.getElementById('db-kyc-alrt').style.display = kycIncomplete ? 'flex' : 'none';
 
-    fire('Dashboard Loaded', {
-      email:                    t.email,
-      merchant_id:              t.merchant_id,
-      plan:                     t.plan,
-      kyc_status:               t.kyc_status,
-      onboarding_step:          t.onboarding_step,
-      days_since_last_login:    t.days_since_last_login || 0,
-      support_tickets_open:     t.support_tickets_open  || 0,
-      preferred_payment_method: t.preferred_payment_method,
-      preferred_corridor:       t.preferred_corridor,
-      risk_score:               t.risk_score,
-      trust_score:              t.trust_score,
-      escrow_tier:              t.escrow_tier,
-      account_age_days:         t.account_age_days,
-      transaction_volume_30d:   t.transaction_volume_30d,
-      transaction_count_30d:    t.transaction_count_30d,
-      is_churn_risk:            (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
-      is_high_risk:             (t.risk_score || 0) > 0.6,
-      is_high_trust:            (t.trust_score || 0) > 0.7
+    // Compute derived signals and merge onto traits before firing.
+    // Full traits object on the event — Segment/PostHog never need a join.
+    var payload = Object.assign({}, t, {
+      is_churn_risk: (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
+      is_high_risk:  (t.risk_score  || 0) > 0.6,
+      is_high_trust: (t.trust_score || 0) > 0.7
     });
+    fire('Dashboard Loaded', payload);
   }
 
   /* ── LOGOUT ── */
