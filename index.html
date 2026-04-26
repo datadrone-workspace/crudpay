@@ -539,6 +539,18 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
 
     <!-- OVERVIEW TAB -->
     <div id="db-overview">
+
+      <!-- Test mode banner — shown when KYC is not verified -->
+      <div id="db-testmode" style="background:#FFFBEB;border:1px solid #FDE68A;border-radius:var(--r-lg);padding:14px 18px;margin-bottom:20px;display:flex;align-items:center;gap:14px;flex-wrap:wrap">
+        <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:240px">
+          <span style="font-size:16px">🧪</span>
+          <div>
+            <div style="font-size:13px;font-weight:600;color:#92400E">Test mode — complete KYC to go live</div>
+            <div style="font-size:12px;color:#B45309;margin-top:2px">Payment data shown below is simulated. Real transactions will appear once your account is verified.</div>
+          </div>
+        </div>
+        <button class="btn" style="background:#92400E;color:#fff;border-color:#92400E;font-size:12.5px;padding:7px 16px;flex-shrink:0" onclick="dbTab('kyc')">Complete KYC →</button>
+      </div>
       <div class="db-stats">
         <div class="db-sc" data-stat="gmv"><div class="db-sl">GMV today</div><div class="db-sn">₹2,41,800</div><div class="db-sd up">↑ 12.4% vs yesterday</div></div>
         <div class="db-sc" data-stat="success_rate"><div class="db-sl">Success rate</div><div class="db-sn">98.2%</div><div class="db-sd up">↑ 0.3% vs last week</div></div>
@@ -632,11 +644,11 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
                 <div style="font-size:11px;color:var(--g400);margin-top:4px">PDF or JPG, max 5MB</div>
                 <div class="kyc-upload-status" id="ku-gst-st">Click to upload</div>
               </div>
-              <div class="kyc-upload" id="ku-inc" onclick="kycUpload('incorporation')">
+              <div class="kyc-upload" id="ku-incorporation" onclick="kycUpload('incorporation')">
                 <div style="font-size:22px;margin-bottom:8px">🏢</div>
                 <div style="font-size:13px;font-weight:500">Incorporation Proof</div>
                 <div style="font-size:11px;color:var(--g400);margin-top:4px">COI or Partnership deed</div>
-                <div class="kyc-upload-status" id="ku-inc-st">Click to upload</div>
+                <div class="kyc-upload-status" id="ku-incorporation-st">Click to upload</div>
               </div>
             </div>
             <button class="btn bp" id="kyc-doc-btn" onclick="kycNext(2)" style="margin-top:16px;opacity:.4;pointer-events:none">Continue</button>
@@ -1085,6 +1097,11 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
         try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
         if (window.analytics && analytics.identify) analytics.identify(user.merchant_id, user);
       }
+      // Hide test mode banner — merchant has submitted KYC
+      var testBanner = document.getElementById('db-testmode');
+      if (testBanner) testBanner.style.display = 'none';
+      var alrt = document.getElementById('db-kyc-alrt');
+      if (alrt) alrt.style.display = 'none';
     }
 
     // Advance to next step
@@ -1293,13 +1310,32 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       (t.business_name || t.email || '') + '  ·  ' + (t.merchant_id || '');
 
     var kycIncomplete = t.kyc_status === 'not_started' || t.kyc_status === 'pending';
+    var kycVerified   = t.kyc_status === 'verified';
+
+    // KYC alert in header
     document.getElementById('db-kyc-alrt').style.display = kycIncomplete ? 'flex' : 'none';
 
+    // Test mode banner — visible until KYC is verified
+    var testBanner = document.getElementById('db-testmode');
+    if (testBanner) testBanner.style.display = kycVerified ? 'none' : 'flex';
+
     fire('Dashboard Loaded', Object.assign({}, t, {
-      is_churn_risk: (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
-      is_high_risk:  (t.risk_score  || 0) > 0.6,
-      is_high_trust: (t.trust_score || 0) > 0.7
+      is_churn_risk:    (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
+      is_high_risk:     (t.risk_score  || 0) > 0.6,
+      is_high_trust:    (t.trust_score || 0) > 0.7,
+      is_test_mode:     !kycVerified,
+      kyc_verified:     kycVerified
     }));
+
+    // Track test mode impression separately — useful for UC1 onboarding funnel
+    if (!kycVerified) {
+      fire('Test Mode Banner Shown', {
+        email:           t.email,
+        merchant_id:     t.merchant_id,
+        kyc_status:      t.kyc_status,
+        onboarding_step: t.onboarding_step
+      });
+    }
   }
 
   /* ════════════════════════════════════
