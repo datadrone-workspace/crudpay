@@ -9,7 +9,7 @@
 
   <script>
     var ANALYTICS_CONFIG = {
-      SEGMENT_WRITE_KEY: "suzg9Ck5EW9xT65CXpm456ObsF3r3K31",
+      SEGMENT_WRITE_KEY: "YOUR_SEGMENT_WRITE_KEY",
       POSTHOG_API_KEY:   "YOUR_POSTHOG_API_KEY",
       POSTHOG_HOST:      "https://app.posthog.com"
     };
@@ -452,7 +452,8 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       <div id="lf">
         <div class="a-title">Welcome back</div>
         <div class="a-sub">Log in to your CRUDPay account</div>
-        <form onsubmit="doLogin(event)">
+        <form onsubmit="doLogin(event)" novalidate>
+          <div id="l-err" style="display:none;background:#FEF2F2;color:#DC2626;font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA;"></div>
           <div class="ff"><label>Email</label><input type="email" id="l-email" placeholder="you@company.com" autocomplete="email"/></div>
           <div class="ff"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"/></div>
           <button type="submit" class="btn bp" style="width:100%;justify-content:center;font-size:14px;padding:12px;margin-top:6px">Log in</button>
@@ -462,7 +463,8 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       <div id="sf" style="display:none">
         <div class="a-title">Create your account</div>
         <div class="a-sub">Start accepting payments in minutes</div>
-        <form onsubmit="doSignup(event)">
+        <form onsubmit="doSignup(event)" novalidate>
+          <div id="s-err" style="display:none;background:#FEF2F2;color:#DC2626;font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA;"></div>
           <div class="f-row">
             <div class="ff"><label>First name</label><input type="text" id="s-first" placeholder="Priya"/></div>
             <div class="ff"><label>Last name</label><input type="text" id="s-last" placeholder="Sharma"/></div>
@@ -527,578 +529,506 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
 </div>
 
 
-<!-- ════════════════════════════════════
-     CDP ANALYTICS LAYER
-     Invisible to users. Fires Segment +
-     PostHog events for all 4 use cases.
-════════════════════════════════════ -->
 <script>
 (function(){
 
-  // ── STATE ─────────────────────────────────────────────────────
-  var C = false;
-  var sid = 'sess_'+Date.now()+'_'+Math.random().toString(36).substr(2,6);
-  var t0 = Date.now();
+  /* ── STATE ── */
+  var C     = false;
+  var sid   = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
+  var t0    = Date.now();
   var curPage = 'home';
-  var user = null;           // set on login/signup, restored from localStorage
+  var user  = null;
   var scrollMark = {25:false,50:false,75:false,90:false};
-  var featSeen={}, planSeen={}, faqSeen={};
-  var formStarted=false, sfT=null;
-  var activeDoc='quickstart', docT=Date.now();
+  var formStarted = false, sfT = null;
+  var activeDoc = 'quickstart', docT = Date.now();
+  var obsRegistered = false; /* prevent re-registering observers on every nav */
 
-  // ── RESTORE SESSION ───────────────────────────────────────────
-  // If user was already logged in (same browser session), restore their profile
-  // so they don't hit the login page again when navigating between pages.
+  /* ── RESTORE SESSION from localStorage ── */
   try {
     var saved = localStorage.getItem('cp_user');
     if (saved) user = JSON.parse(saved);
-  } catch(e){}
+  } catch(e) {}
 
-  // ── CONSENT ──────────────────────────────────────────────────
-  try{
-    var sc=localStorage.getItem('cp_c');
-    if(sc==='y'){ document.getElementById('cb').classList.add('h'); boot(); }
-    else if(sc==='n'){ document.getElementById('cb').classList.add('h'); }
-  }catch(e){}
+  /* ── CONSENT ── */
+  try {
+    var cs = localStorage.getItem('cp_c');
+    if (cs === 'y') { document.getElementById('cb').classList.add('h'); boot(); }
+    else if (cs === 'n') { document.getElementById('cb').classList.add('h'); }
+  } catch(e) {}
 
-  document.getElementById('cbA').onclick=function(){
-    try{localStorage.setItem('cp_c','y');}catch(e){}
+  document.getElementById('cbA').onclick = function() {
+    try { localStorage.setItem('cp_c','y'); } catch(e) {}
     document.getElementById('cb').classList.add('h');
     boot();
-    fire('Consent Granted',{categories:['analytics','performance'],method:'banner'});
+    fire('Consent Granted', { method: 'banner' });
   };
-  document.getElementById('cbD').onclick=function(){
-    try{localStorage.setItem('cp_c','n');}catch(e){}
+  document.getElementById('cbD').onclick = function() {
+    try { localStorage.setItem('cp_c','n'); } catch(e) {}
     document.getElementById('cb').classList.add('h');
   };
 
-  function boot(){
-    C=true;
-    if(window.analytics&&!window.analytics.initialize) analytics.load(ANALYTICS_CONFIG.SEGMENT_WRITE_KEY);
-    if(window.posthog) posthog.opt_in_capturing();
-    // Re-identify if session was restored
-    if(user) { ident(user.mid, user, true); }
-    pgView(curPage); sessionStart(); scrollTrack(); sectionObs();
+  function boot() {
+    C = true;
+    if (window.analytics && !window.analytics.initialize)
+      analytics.load(ANALYTICS_CONFIG.SEGMENT_WRITE_KEY);
+    if (window.posthog) posthog.opt_in_capturing();
+    if (user) ident(user.merchant_id, user, true);
+    pgView(curPage);
+    sessionStart();
+    initScrollTrack();
+    if (!obsRegistered) { registerObservers(); obsRegistered = true; }
   }
 
-  // ── DISPATCH ─────────────────────────────────────────────────
-  function fire(ev, props){
-    if(!C) return;
-    var p=Object.assign({
-      session_id:   sid,
-      page:         curPage,
-      ts:           new Date().toISOString(),
-      elapsed_sec:  Math.round((Date.now()-t0)/1000),
-      user_type:    user ? 'merchant' : 'anonymous',
-      // Always include email + merchant_id in every event if known
-      email:        user ? user.email : null,
-      merchant_id:  user ? user.mid  : null,
-      plan:         user ? user.plan  : null
-    }, props||{});
-    if(window.analytics&&analytics.track) analytics.track(ev,p);
-    if(window.posthog&&posthog.capture)   posthog.capture(ev,p);
+  /* ── CORE DISPATCH ── */
+  function fire(ev, props) {
+    if (!C) return;
+    var base = {
+      session_id:  sid,
+      page:        curPage,
+      ts:          new Date().toISOString(),
+      elapsed_sec: Math.round((Date.now() - t0) / 1000),
+      user_type:   user ? 'merchant' : 'anonymous',
+      email:       user ? user.email       : null,
+      merchant_id: user ? user.merchant_id : null
+    };
+    var p = Object.assign({}, base, props || {});
+    if (window.analytics && analytics.track) analytics.track(ev, p);
+    if (window.posthog  && posthog.capture)  posthog.capture(ev, p);
   }
 
-  // ── IDENTIFY ─────────────────────────────────────────────────
-  // silentRestore=true skips writing to localStorage (already there)
-  function ident(mid, traits, silentRestore){
-    if(!C) return;
-    user = Object.assign({mid:mid}, traits);
-    if(!silentRestore){
-      try{ localStorage.setItem('cp_user', JSON.stringify(user)); }catch(e){}
+  function ident(mid, traits, silent) {
+    user = Object.assign({ merchant_id: mid }, traits);
+    if (!silent) {
+      try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch(e) {}
     }
-    if(window.analytics&&analytics.identify) analytics.identify(mid, traits);
-    if(window.posthog&&posthog.identify)     posthog.identify(mid, traits);
+    if (!C) return;
+    if (window.analytics && analytics.identify) analytics.identify(mid, traits);
+    if (window.posthog  && posthog.identify)  posthog.identify(mid, traits);
   }
 
-  // ── PAGE VIEW ─────────────────────────────────────────────────
-  function pgView(name){
-    var q=new URLSearchParams(window.location.search);
-    if(window.analytics&&analytics.page){
-      analytics.page(name,{
-        title:        document.title,
-        path:         '/'+name,
-        referrer:     document.referrer||'direct',
+  /* ── PAGE VIEW ── */
+  function pgView(name) {
+    var q = new URLSearchParams(window.location.search);
+    if (window.analytics && analytics.page)
+      analytics.page(name, {
+        path: '/' + name,
+        referrer: document.referrer || 'direct',
         utm_source:   q.get('utm_source'),
         utm_medium:   q.get('utm_medium'),
         utm_campaign: q.get('utm_campaign'),
         session_id:   sid,
-        email:        user ? user.email : null,
-        merchant_id:  user ? user.mid   : null
+        email:        user ? user.email       : null,
+        merchant_id:  user ? user.merchant_id : null
       });
-    }
-    if(window.posthog) posthog.capture('$pageview',{$current_url:window.location.pathname+'#'+name,page_name:name,session_id:sid,email:user?user.email:null});
+    if (window.posthog)
+      posthog.capture('$pageview', { page_name: name, session_id: sid });
   }
 
-  function sessionStart(){
-    var ref=document.referrer||'direct', ch='direct';
-    if(/google|bing|yahoo/.test(ref)) ch='organic_search';
-    if(/linkedin/.test(ref))           ch='linkedin';
-    if(/twitter|x\.com/.test(ref))     ch='social';
-    var q=new URLSearchParams(window.location.search);
-    if(q.get('utm_medium')==='cpc')   ch='paid_search';
-    if(q.get('utm_medium')==='email') ch='email';
-    var ret=false; try{ret=!!localStorage.getItem('cp_ret');}catch(e){}
-    fire('Session Started',{
+  function sessionStart() {
+    var ref = document.referrer || 'direct';
+    var ch  = 'direct';
+    if (/google|bing|yahoo/.test(ref)) ch = 'organic_search';
+    if (/linkedin/.test(ref))           ch = 'linkedin';
+    if (/twitter|x\.com/.test(ref))    ch = 'social';
+    var q = new URLSearchParams(window.location.search);
+    if (q.get('utm_medium') === 'cpc')   ch = 'paid_search';
+    if (q.get('utm_medium') === 'email') ch = 'email';
+    var ret = false;
+    try { ret = !!localStorage.getItem('cp_ret'); } catch(e) {}
+    fire('Session Started', {
       referrer:     ref,
       channel:      ch,
       utm_source:   q.get('utm_source'),
       utm_medium:   q.get('utm_medium'),
       utm_campaign: q.get('utm_campaign'),
-      utm_content:  q.get('utm_content'),
       is_returning: ret,
-      device_type:  window.innerWidth<768?'mobile':window.innerWidth<1024?'tablet':'desktop',
-      screen_width: window.screen.width,
+      device_type:  window.innerWidth < 768 ? 'mobile' : window.innerWidth < 1024 ? 'tablet' : 'desktop',
       language:     navigator.language,
-      timezone:     Intl.DateTimeFormat().resolvedOptions().timeZone
+      timezone:     Intl ? Intl.DateTimeFormat().resolvedOptions().timeZone : null
     });
-    try{localStorage.setItem('cp_ret','1');}catch(e){}
+    try { localStorage.setItem('cp_ret','1'); } catch(e) {}
   }
 
-  function scrollTrack(){
-    window.addEventListener('scroll',function(){
-      var pct=Math.round((window.scrollY/Math.max(1,document.body.scrollHeight-window.innerHeight))*100);
-      [25,50,75,90].forEach(function(m){
-        if(!scrollMark[m]&&pct>=m){
-          scrollMark[m]=true;
-          fire('Scroll Depth Reached',{depth_percent:m, page:curPage});
+  function initScrollTrack() {
+    window.addEventListener('scroll', function() {
+      var pct = Math.round((window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight)) * 100);
+      [25,50,75,90].forEach(function(m) {
+        if (!scrollMark[m] && pct >= m) {
+          scrollMark[m] = true;
+          fire('Scroll Depth Reached', { depth_percent: m });
         }
       });
-    },{passive:true});
+    }, { passive: true });
   }
 
-  function sectionObs(){
-    var ucMap={payment_gateway:'uc2_conversion',payouts:'uc2_conversion',fraud_prevention:'uc3_risk_fraud',analytics:'uc1_lifecycle',kyc:'uc1_onboarding',escrow:'uc4_trust_identity'};
+  /* ── OBSERVERS — registered ONCE, not on every navigation ── */
+  function registerObservers() {
 
-    // Feature cards
-    document.querySelectorAll('.fc').forEach(function(el){
-      var feat=el.dataset.feat;
-      new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if(e.isIntersecting&&!featSeen[feat]&&C){
-            featSeen[feat]=true;
-            fire('Feature Card Viewed',{feature_id:feat,uc_context:ucMap[feat]||null});
-          }
-        });
-      },{threshold:.6}).observe(el);
-      var hs=null;
-      el.addEventListener('mouseenter',function(){hs=Date.now();});
-      el.addEventListener('mouseleave',function(){
-        if(hs&&C){var ms=Date.now()-hs;if(ms>1000) fire('Feature Card Engaged',{feature_id:feat,hover_ms:ms,uc_context:ucMap[feat]||null});hs=null;}
+    /* Feature cards */
+    document.querySelectorAll('.fc').forEach(function(el) {
+      var feat = el.dataset.feat;
+      var seen = false;
+      new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting && !seen && C) {
+          seen = true;
+          fire('Feature Viewed', { feature_id: feat });
+        }
+      }, { threshold: 0.6 }).observe(el);
+
+      var hs = null;
+      el.addEventListener('mouseenter', function() { hs = Date.now(); });
+      el.addEventListener('mouseleave', function() {
+        if (hs && C) {
+          var ms = Date.now() - hs;
+          if (ms > 1000) fire('Feature Engaged', { feature_id: feat, hover_ms: ms });
+          hs = null;
+        }
       });
     });
 
-    // Pricing plans
-    document.querySelectorAll('.plan').forEach(function(el){
-      var plan=el.dataset.plan;
-      new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if(e.isIntersecting&&!planSeen[plan]&&C){
-            planSeen[plan]=true;
-            fire('Pricing Plan Viewed',{plan_name:plan,is_featured:plan==='growth',uc_context:'uc2_conversion_revenue'});
-          }
-        });
-      },{threshold:.7}).observe(el);
+    /* Pricing plans */
+    document.querySelectorAll('.plan').forEach(function(el) {
+      var plan = el.dataset.plan;
+      var seen = false;
+      new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting && !seen && C) {
+          seen = true;
+          fire('Pricing Plan Viewed', { plan_name: plan });
+        }
+      }, { threshold: 0.7 }).observe(el);
     });
 
-    // FAQ
-    document.querySelectorAll('.faq-i').forEach(function(el){
-      var faq=el.dataset.faq;
-      new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if(e.isIntersecting&&!faqSeen[faq]&&C){
-            faqSeen[faq]=true;
-            fire('FAQ Viewed',{faq_id:faq,uc_context:'uc1_merchant_lifecycle'});
-          }
-        });
-      },{threshold:.8}).observe(el);
+    /* FAQ items */
+    document.querySelectorAll('.faq-i').forEach(function(el) {
+      var faq = el.dataset.faq;
+      var seen = false;
+      new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting && !seen && C) {
+          seen = true;
+          fire('FAQ Viewed', { faq_id: faq });
+        }
+      }, { threshold: 0.8 }).observe(el);
     });
 
-    // Dashboard stat cards
-    document.querySelectorAll('.db-sc').forEach(function(el){
-      var stat=el.dataset.stat;
-      var fired=false;
-      new IntersectionObserver(function(entries){
-        entries.forEach(function(e){
-          if(e.isIntersecting&&!fired&&C){
-            fired=true;
-            fire('Dashboard Stat Viewed',{stat_id:stat,uc_context:'uc1_merchant_lifecycle'});
-          }
-        });
-      },{threshold:.9}).observe(el);
+    /* Dashboard stat cards */
+    document.querySelectorAll('.db-sc').forEach(function(el) {
+      var stat = el.dataset.stat;
+      var seen = false;
+      new IntersectionObserver(function(entries) {
+        if (entries[0].isIntersecting && !seen && C) {
+          seen = true;
+          fire('Dashboard Stat Viewed', { stat_id: stat });
+        }
+      }, { threshold: 0.9 }).observe(el);
     });
   }
 
-  // ── NAVIGATION ────────────────────────────────────────────────
-  // Guards: if user is logged in, redirect away from login page.
-  // If user is NOT logged in, redirect away from dashboard.
-  window.go=function(page,src){
-    var prevPage=curPage;
+  /* ── NAVIGATION ── */
+  window.go = function(page, src) {
+    var prev = curPage;
 
-    // Auth guard — logged in users skip login page
-    if(page==='login'&&user){ page='dashboard'; }
-    // Auth guard — logged out users can't reach dashboard
-    if(page==='dashboard'&&!user){ page='login'; }
+    /* auth guards */
+    if (page === 'login'     && user) page = 'dashboard';
+    if (page === 'dashboard' && !user) page = 'login';
 
-    document.querySelectorAll('.pg,.db-pg').forEach(function(p){p.classList.remove('on');});
-    document.querySelectorAll('.n-links a').forEach(function(a){a.classList.toggle('active',a.dataset.p===page);});
-    var el=document.getElementById(page==='dashboard'?'pg-db':'pg-'+page);
-    if(el) el.classList.add('on');
+    document.querySelectorAll('.pg, .db-pg').forEach(function(p) { p.classList.remove('on'); });
+    document.querySelectorAll('.n-links a').forEach(function(a) {
+      a.classList.toggle('active', a.dataset.p === page);
+    });
 
-    window.scrollTo(0,0);
-    scrollMark={25:false,50:false,75:false,90:false};
-    featSeen={}; planSeen={}; faqSeen={};
-    t0=Date.now();
-    curPage=page;
+    var el = document.getElementById(page === 'dashboard' ? 'pg-db' : 'pg-' + page);
+    if (el) el.classList.add('on');
 
-    // Update nav state based on auth
+    window.scrollTo(0, 0);
+    scrollMark = {25:false,50:false,75:false,90:false};
+    t0 = Date.now();
+    curPage = page;
+
     updateNav();
 
-    if(C){
+    if (C) {
       pgView(page);
-      fire('Page Navigated',{
-        destination:        page,
-        source_page:        src||prevPage,
-        is_dashboard_visit: page==='dashboard',
-        days_since_signup:  user&&user.signup_date?Math.floor((Date.now()-new Date(user.signup_date).getTime())/86400000):null
-      });
+      fire('Page Navigated', { destination: page, source_page: src || prev });
     }
 
-    setTimeout(function(){
-      document.querySelectorAll('.reveal').forEach(function(el){el.classList.remove('on');});
+    /* scroll reveal */
+    setTimeout(function() {
+      document.querySelectorAll('.reveal').forEach(function(el) { el.classList.remove('on'); });
       initReveal();
-      if(C) sectionObs();
-    },50);
+    }, 50);
   };
 
-  // ── NAV STATE ─────────────────────────────────────────────────
-  // Single source of truth for what the nav shows.
-  // Called after every login, logout, and navigation.
-  function updateNav(){
-    var nr=document.getElementById('n-right');
-    if(user){
-      // Show display name derived from email (part before @) or business name
-      var displayName = user.firstName
-        ? user.firstName
-        : (user.email ? user.email.split('@')[0] : (user.business_name||'Account'));
-      nr.innerHTML=
-        '<span style="font-size:13px;color:var(--g600);font-weight:500;max-width:160px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap" title="'+user.email+'">'+displayName+'</span>'+
-        '<button class="btn bp" onclick="go(\'dashboard\')">Dashboard</button>'+
+  /* ── NAV ── */
+  function updateNav() {
+    var nr = document.getElementById('n-right');
+    if (user) {
+      var name = user.firstName || (user.email ? user.email.split('@')[0] : 'Account');
+      nr.innerHTML =
+        '<span style="font-size:13px;color:var(--g600);font-weight:500">' + name + '</span>' +
+        '<button class="btn bp" onclick="go(\'dashboard\')">Dashboard</button>' +
         '<button class="btn bg" onclick="doLogout()">Log out</button>';
     } else {
-      nr.innerHTML=
-        '<button class="btn bg" id="n-login" onclick="go(\'login\')">Log in</button>'+
-        '<button class="btn bp" id="n-signup" onclick="go(\'login\')">Sign up free</button>';
+      nr.innerHTML =
+        '<button class="btn bg" onclick="go(\'login\')">Log in</button>' +
+        '<button class="btn bp" onclick="go(\'login\')">Sign up free</button>';
     }
   }
 
-  // ── AUTH TABS ─────────────────────────────────────────────────
-  window.authTab=function(tab){
-    document.getElementById('t-login').classList.toggle('on',tab==='login');
-    document.getElementById('t-signup').classList.toggle('on',tab==='signup');
-    document.getElementById('lf').style.display=tab==='login'?'':'none';
-    document.getElementById('sf').style.display=tab==='signup'?'':'none';
-    if(tab==='signup'&&!sfT) sfT=Date.now();
-    fire('Auth Tab Switched',{tab:tab,uc_context:'uc1_merchant_onboarding'});
+  /* ── AUTH TABS ── */
+  window.authTab = function(tab) {
+    document.getElementById('t-login').classList.toggle('on', tab === 'login');
+    document.getElementById('t-signup').classList.toggle('on', tab === 'signup');
+    document.getElementById('lf').style.display = tab === 'login'  ? '' : 'none';
+    document.getElementById('sf').style.display = tab === 'signup' ? '' : 'none';
+    if (tab === 'signup' && !sfT) sfT = Date.now();
+    fire('Auth Tab Switched', { tab: tab });
   };
 
-  // ── LOGIN ─────────────────────────────────────────────────────
-  window.doLogin=function(e){
+  /* ── LOGIN ── */
+  window.doLogin = function(e) {
     e.preventDefault();
-    var email=document.getElementById('l-email').value.trim();
-    var pass=document.getElementById('l-pass').value;
+    var email = document.getElementById('l-email').value.trim();
+    var pass  = document.getElementById('l-pass').value.trim();
 
-    // Inline validation — no alert()
-    document.getElementById('l-err').style.display='none';
-    if(!email||!pass){
-      document.getElementById('l-err').textContent='Email and password are required.';
-      document.getElementById('l-err').style.display='block';
+    var errEl = document.getElementById('l-err');
+    errEl.style.display = 'none';
+
+    if (!email || !pass) {
+      errEl.textContent = 'Email and password are required.';
+      errEl.style.display = 'block';
       return;
     }
 
-    // Derive display name from email prefix
-    var emailName = email.split('@')[0].replace(/[._-]/g,' ').replace(/\b\w/g,function(l){return l.toUpperCase();});
+    /* derive display name from email */
+    var firstName = email.split('@')[0]
+      .replace(/[._-]/g, ' ')
+      .replace(/\b\w/g, function(l) { return l.toUpperCase(); });
 
-    var traits={
-      email:                       email,
-      firstName:                   emailName,
-      mid:                         'mrc_8821',
-      merchant_id:                 'mrc_8821',
-      business_name:               'Shopkart India',
-      business_type:               'ecommerce',
-      plan:                        'growth',
-      // UC1: merchant lifecycle + churn signals
-      kyc_status:                  'pending',
-      onboarding_step:             'kyc_pending',
-      lifecycle_stage:             'active',
-      days_since_last_login:       14,
-      support_tickets_open:        3,
-      transaction_velocity_trend:  'declining',
-      transaction_volume_30d:      241800,
-      transaction_count_30d:       1847,
-      // UC2: payment preferences
-      preferred_payment_method:    'UPI',
-      preferred_corridor:          'INR-USD',
-      checkout_success_rate:       0.982,
-      // UC3: risk signals
-      risk_score:                  0.72,
-      device_fingerprint_changes_7d: 1,
-      failed_login_attempts_7d:    0,
-      // UC4: trust + escrow + identity
-      trust_score:                 0.41,
-      escrow_tier:                 'standard',
-      account_age_days:            135,
-      signup_date:                 '2024-09-12',
-      buyer_records_linked:        2,
-      seller_records_linked:       1,
-      identity_resolved:           true,
-      is_returning_user:           true,
-      last_login_ts:               new Date(Date.now()-14*86400000).toISOString()
+    var traits = {
+      email:                      email,
+      firstName:                  firstName,
+      merchant_id:                'mrc_8821',
+      business_name:              'Shopkart India',
+      business_type:              'ecommerce',
+      plan:                       'growth',
+      kyc_status:                 'pending',
+      onboarding_step:            'kyc_pending',
+      days_since_last_login:      14,
+      support_tickets_open:       3,
+      preferred_payment_method:   'UPI',
+      preferred_corridor:         'INR-USD',
+      risk_score:                 0.72,
+      trust_score:                0.41,
+      escrow_tier:                'standard',
+      account_age_days:           135,
+      signup_date:                '2024-09-12',
+      transaction_volume_30d:     241800,
+      transaction_count_30d:      1847,
+      is_returning_user:          true
     };
 
     ident('mrc_8821', traits);
-
-    fire('Merchant Logged In',{
-      email:                  email,
-      merchant_id:            'mrc_8821',
-      plan:                   'growth',
-      kyc_status:             'pending',
-      onboarding_step:        'kyc_pending',
-      days_since_last_login:  14,
-      support_tickets_open:   3,
-      risk_score:             0.72,
-      trust_score:            0.41,
-      churn_risk_signal:      true,
-      login_risk_flag:        false,
-      identity_resolved:      true,
-      uc_context:             'uc1_uc3_uc4_identity_resolution'
+    fire('Merchant Logged In', {
+      email:                 email,
+      merchant_id:           'mrc_8821',
+      plan:                  'growth',
+      kyc_status:            'pending',
+      days_since_last_login: 14,
+      risk_score:            0.72,
+      trust_score:           0.41
     });
 
     mountDash(traits);
-    go('dashboard','login');
+    go('dashboard', 'login');
   };
 
-  // ── SIGNUP ────────────────────────────────────────────────────
-  window.doSignup=function(e){
+  /* ── SIGNUP ── */
+  window.doSignup = function(e) {
     e.preventDefault();
-    var first=document.getElementById('s-first').value.trim();
-    var last =document.getElementById('s-last').value.trim();
-    var email=document.getElementById('s-email').value.trim();
-    var biz  =document.getElementById('s-biz').value.trim();
-    var btype=document.getElementById('s-btype').value;
-    if(!email){ alert('Work email is required.'); return; }
-    if(!biz)  { alert('Business name is required.'); return; }
+    var first = document.getElementById('s-first').value.trim();
+    var last  = document.getElementById('s-last').value.trim();
+    var email = document.getElementById('s-email').value.trim();
+    var biz   = document.getElementById('s-biz').value.trim();
+    var btype = document.getElementById('s-btype').value;
 
-    var mid='mrc_'+Math.random().toString(36).substr(2,6).toUpperCase();
-    var now=new Date().toISOString();
+    var errEl = document.getElementById('s-err');
+    errEl.style.display = 'none';
 
-    var traits={
-      email:                     email,
-      firstName:                 first || email.split('@')[0].split('.')[0],
-      lastName:                  last||'',
-      mid:                       mid,
-      merchant_id:               mid,
-      business_name:             biz,
-      business_type:             btype,
-      plan:                      'starter',
-      // UC1
-      kyc_status:                'not_started',
-      onboarding_step:           'account_created',
-      lifecycle_stage:           'acquisition',
-      days_since_last_login:     0,
-      support_tickets_open:      0,
-      transaction_velocity_trend:'none',
-      transaction_volume_30d:    0,
-      transaction_count_30d:     0,
-      // UC2
-      preferred_payment_method:  null,
-      preferred_corridor:        null,
-      checkout_success_rate:     null,
-      // UC3
-      risk_score:                0.1,
-      device_fingerprint_changes_7d: 0,
-      failed_login_attempts_7d:  0,
-      // UC4
-      trust_score:               0.0,
-      escrow_tier:               'standard',
-      account_age_days:          0,
-      buyer_records_linked:      0,
-      seller_records_linked:     0,
-      identity_resolved:         true,
-      signup_date:               now,
-      is_returning_user:         false,
-      lead_source:               'website_signup',
-      signup_form_duration_sec:  sfT?Math.round((Date.now()-sfT)/1000):null
+    if (!email) {
+      errEl.textContent = 'Work email is required.';
+      errEl.style.display = 'block';
+      return;
+    }
+    if (!biz) {
+      errEl.textContent = 'Business name is required.';
+      errEl.style.display = 'block';
+      return;
+    }
+
+    var mid = 'mrc_' + Math.random().toString(36).substr(2,6).toUpperCase();
+    var derivedFirst = first || email.split('@')[0].split('.')[0].replace(/\b\w/g, function(l){ return l.toUpperCase(); });
+
+    var traits = {
+      email:                    email,
+      firstName:                derivedFirst,
+      lastName:                 last,
+      merchant_id:              mid,
+      business_name:            biz,
+      business_type:            btype || 'other',
+      plan:                     'starter',
+      kyc_status:               'not_started',
+      onboarding_step:          'account_created',
+      preferred_payment_method: null,
+      preferred_corridor:       null,
+      risk_score:               0.1,
+      trust_score:              0.0,
+      escrow_tier:              'standard',
+      account_age_days:         0,
+      transaction_volume_30d:   0,
+      transaction_count_30d:    0,
+      signup_date:              new Date().toISOString(),
+      is_returning_user:        false,
+      lead_source:              'website_signup',
+      signup_form_duration_sec: sfT ? Math.round((Date.now() - sfT) / 1000) : null
     };
 
     ident(mid, traits);
-
-    fire('Merchant Signed Up',{
-      email:                     email,
-      merchant_id:               mid,
-      business_type:             btype,
-      business_name:             biz,
-      onboarding_step:           'account_created',
-      lifecycle_stage:           'acquisition',
-      signup_form_duration_sec:  traits.signup_form_duration_sec,
-      identity_resolved:         true,
-      uc_context:                'uc1_uc4_identity_resolution'
+    fire('Merchant Signed Up', {
+      email:           email,
+      merchant_id:     mid,
+      business_type:   btype,
+      business_name:   biz,
+      onboarding_step: 'account_created',
+      signup_form_duration_sec: traits.signup_form_duration_sec
     });
 
     mountDash(traits);
-    go('dashboard','signup');
+    go('dashboard', 'signup');
   };
 
-  // ── DASHBOARD MOUNT ───────────────────────────────────────────
-  function mountDash(t){
-    // Display name: firstName if set, else derive from email prefix
-    var displayName = t.firstName || (t.email ? t.email.split('@')[0].replace(/[._-]/g,' ').replace(/\b\w/g,function(l){return l.toUpperCase();}) : 'Merchant');
-    document.getElementById('db-name').textContent = displayName;
-    document.getElementById('db-sub').textContent  = (t.business_name||t.email||'') + '  ·  ' + (t.merchant_id||t.mid||'');
+  /* ── DASHBOARD MOUNT ── */
+  function mountDash(t) {
+    var name = t.firstName || (t.email ? t.email.split('@')[0] : 'Merchant');
+    document.getElementById('db-name').textContent = name;
+    document.getElementById('db-sub').textContent  =
+      (t.business_name || t.email || '') + '  ·  ' + (t.merchant_id || '');
 
-    var kycIncomplete = t.kyc_status==='not_started'||t.kyc_status==='pending';
+    var kycIncomplete = t.kyc_status === 'not_started' || t.kyc_status === 'pending';
     document.getElementById('db-kyc-alrt').style.display = kycIncomplete ? 'flex' : 'none';
 
-    if(C){
-      if(kycIncomplete){
-        fire('Onboarding Alert Shown',{
-          alert_type:      'kyc_incomplete',
-          kyc_status:      t.kyc_status,
-          onboarding_step: t.onboarding_step,
-          uc_context:      'uc1_merchant_onboarding'
-        });
-      }
-
-      // ── UNIFIED MERCHANT PROFILE EVENT ──
-      // Every field is tagged to its use case.
-      // This single event powers all 4 Segment audiences.
-      fire('Dashboard Loaded',{
-        // Always present
-        email:               t.email,
-        merchant_id:         t.mid||t.merchant_id,
-        plan:                t.plan,
-
-        // UC1 — Merchant Lifecycle
-        kyc_status:                  t.kyc_status,
-        onboarding_step:             t.onboarding_step,
-        lifecycle_stage:             t.lifecycle_stage||'active',
-        days_since_last_login:       t.days_since_last_login||0,
-        support_tickets_open:        t.support_tickets_open||0,
-        transaction_velocity_trend:  t.transaction_velocity_trend||'stable',
-        transaction_volume_30d:      t.transaction_volume_30d||0,
-        transaction_count_30d:       t.transaction_count_30d||0,
-        is_churn_risk:               (t.days_since_last_login||0)>10||(t.support_tickets_open||0)>2,
-
-        // UC2 — Conversion & Revenue
-        preferred_payment_method:    t.preferred_payment_method||null,
-        preferred_corridor:          t.preferred_corridor||null,
-        checkout_success_rate:       t.checkout_success_rate||null,
-
-        // UC3 — Risk & Fraud
-        risk_score:                  t.risk_score||0,
-        device_fingerprint_changes_7d: t.device_fingerprint_changes_7d||0,
-        failed_login_attempts_7d:    t.failed_login_attempts_7d||0,
-        is_high_risk:                (t.risk_score||0)>0.6,
-
-        // UC4 — Identity & Trust
-        trust_score:                 t.trust_score||0,
-        escrow_tier:                 t.escrow_tier||'standard',
-        account_age_days:            t.account_age_days||0,
-        buyer_records_linked:        t.buyer_records_linked||0,
-        seller_records_linked:       t.seller_records_linked||0,
-        is_high_trust:               (t.trust_score||0)>0.7,
-        identity_resolved:           true,
-
-        uc_context: 'uc1_uc2_uc3_uc4_unified_merchant_profile'
-      });
-    }
+    fire('Dashboard Loaded', {
+      email:                    t.email,
+      merchant_id:              t.merchant_id,
+      plan:                     t.plan,
+      kyc_status:               t.kyc_status,
+      onboarding_step:          t.onboarding_step,
+      days_since_last_login:    t.days_since_last_login || 0,
+      support_tickets_open:     t.support_tickets_open  || 0,
+      preferred_payment_method: t.preferred_payment_method,
+      preferred_corridor:       t.preferred_corridor,
+      risk_score:               t.risk_score,
+      trust_score:              t.trust_score,
+      escrow_tier:              t.escrow_tier,
+      account_age_days:         t.account_age_days,
+      transaction_volume_30d:   t.transaction_volume_30d,
+      transaction_count_30d:    t.transaction_count_30d,
+      is_churn_risk:            (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
+      is_high_risk:             (t.risk_score || 0) > 0.6,
+      is_high_trust:            (t.trust_score || 0) > 0.7
+    });
   }
 
-  // ── LOGOUT ────────────────────────────────────────────────────
-  window.doLogout=function(){
-    fire('Merchant Logged Out',{
-      email:               user?user.email:null,
-      merchant_id:         user?user.mid:null,
-      session_duration_sec:Math.round((Date.now()-t0)/1000)
+  /* ── LOGOUT ── */
+  window.doLogout = function() {
+    fire('Merchant Logged Out', {
+      email:       user ? user.email       : null,
+      merchant_id: user ? user.merchant_id : null,
+      session_duration_sec: Math.round((Date.now() - t0) / 1000)
     });
-    user=null;
-    try{ localStorage.removeItem('cp_user'); }catch(e){}
-    if(window.analytics&&analytics.reset) analytics.reset();
-    if(window.posthog&&posthog.reset) posthog.reset();
-    go('home','logout');
+    user = null;
+    try { localStorage.removeItem('cp_user'); } catch(e) {}
+    if (window.analytics && analytics.reset) analytics.reset();
+    if (window.posthog  && posthog.reset)   posthog.reset();
+    go('home', 'logout');
   };
 
-  // ── CTA CLICKS ────────────────────────────────────────────────
-  document.getElementById('h-cta1').addEventListener('click',function(){fire('CTA Clicked',{cta_id:'hero_create_account',location:'hero',type:'primary',uc_context:'uc2_conversion_funnel'});});
-  document.getElementById('h-cta2').addEventListener('click',function(){fire('CTA Clicked',{cta_id:'hero_see_docs',location:'hero',type:'secondary',uc_context:'uc2_conversion_funnel'});});
-  document.getElementById('h-bot-cta').addEventListener('click',function(){fire('CTA Clicked',{cta_id:'bottom_get_started',location:'cta_band',type:'primary',uc_context:'uc2_conversion_funnel'});});
+  /* ── CTA CLICKS ── */
+  document.getElementById('h-cta1').addEventListener('click', function() {
+    fire('CTA Clicked', { cta_id: 'hero_create_account', location: 'hero', type: 'primary' });
+  });
+  document.getElementById('h-cta2').addEventListener('click', function() {
+    fire('CTA Clicked', { cta_id: 'hero_see_docs', location: 'hero', type: 'secondary' });
+  });
+  document.getElementById('h-bot-cta').addEventListener('click', function() {
+    fire('CTA Clicked', { cta_id: 'bottom_get_started', location: 'cta_band', type: 'primary' });
+  });
 
-  // ── PRICING PLAN SELECT ───────────────────────────────────────
-  window.selectPlan=function(plan){
-    fire('Pricing Plan Selected',{plan_name:plan,is_enterprise:plan==='enterprise',uc_context:'uc2_conversion_revenue_optimization'});
-    go('login','pricing_'+plan);
+  /* ── PRICING PLAN SELECT ── */
+  window.selectPlan = function(plan) {
+    fire('Pricing Plan Selected', { plan_name: plan, email: user ? user.email : null });
+    go('login', 'pricing_' + plan);
   };
 
-  // ── DOCS TRACKING ─────────────────────────────────────────────
-  var docMap={
+  /* ── DOCS ── */
+  var docCat = {
     'quickstart':'getting_started','authentication':'getting_started','testing':'getting_started',
-    'create-payment':'payments','payment-methods':'uc2_conversion_research','webhooks':'payments',
-    'payouts':'payouts','escrow':'uc4_trust_interest','fraud':'uc3_risk_awareness','kyc':'uc1_onboarding_intent'
+    'create-payment':'payments','payment-methods':'payments','webhooks':'payments',
+    'payouts':'payouts','escrow':'payouts','fraud':'risk','kyc':'compliance'
   };
-  window.setDoc=function(id){
-    var dwell=Date.now()-docT;
-    if(dwell>2000&&C) fire('Doc Section Read',{doc_id:activeDoc,dwell_ms:dwell,uc_signal:docMap[activeDoc]||null});
-    document.querySelectorAll('.sb-link').forEach(function(l){l.classList.toggle('on',l.dataset.doc===id);});
-    activeDoc=id; docT=Date.now();
-    fire('Doc Page Viewed',{doc_id:id,doc_category:docMap[id]||null,uc_signal:docMap[id]||null});
+  window.setDoc = function(id) {
+    var dwell = Date.now() - docT;
+    if (dwell > 2000 && C) fire('Doc Read', { doc_id: activeDoc, dwell_ms: dwell });
+    document.querySelectorAll('.sb-link').forEach(function(l) {
+      l.classList.toggle('on', l.dataset.doc === id);
+    });
+    activeDoc = id; docT = Date.now();
+    fire('Doc Viewed', { doc_id: id, doc_category: docCat[id] || null });
   };
 
-  // ── SIGNUP FORM FIELDS ────────────────────────────────────────
-  window.trackSField=function(f,v){
-    fire('Signup Field Changed',{field:f,value:v,uc_context:'uc1_merchant_onboarding_funnel'});
+  /* ── SIGNUP FORM TRACKING ── */
+  window.trackSField = function(f, v) {
+    fire('Signup Field Changed', { field: f, value: v });
   };
-  ['s-first','s-last','s-email','s-biz'].forEach(function(fid){
-    var el=document.getElementById(fid);
-    if(!el) return;
-    el.addEventListener('focus',function(){
-      if(!formStarted&&C){ formStarted=true; fire('Signup Form Started',{uc_context:'uc1_merchant_onboarding'}); }
+  ['s-first','s-last','s-email','s-biz'].forEach(function(fid) {
+    var el = document.getElementById(fid);
+    if (!el) return;
+    el.addEventListener('focus', function() {
+      if (!formStarted && C) { formStarted = true; fire('Signup Form Started', {}); }
     });
-    el.addEventListener('blur',function(){
-      if(el.value.trim()&&C) fire('Signup Field Completed',{field:fid.replace('s-',''),uc_context:'uc1_merchant_onboarding_funnel'});
-    });
-  });
-
-  // ── PAGE EXIT ─────────────────────────────────────────────────
-  window.addEventListener('beforeunload',function(){
-    if(!C) return;
-    fire('Session Ended',{
-      session_duration_sec: Math.round((Date.now()-t0)/1000),
-      max_scroll_depth:     Object.keys(scrollMark).reduce(function(m,k){return scrollMark[k]?parseInt(k):m;},0),
-      last_page:            curPage,
-      is_merchant:          !!user
+    el.addEventListener('blur', function() {
+      if (el.value.trim() && C) fire('Signup Field Completed', { field: fid.replace('s-','') });
     });
   });
 
-  // ── REVEAL ────────────────────────────────────────────────────
-  function initReveal(){
-    var obs=new IntersectionObserver(function(entries){
-      entries.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add('on'); obs.unobserve(e.target); } });
-    },{threshold:.1});
-    document.querySelectorAll('.reveal').forEach(function(el){ obs.observe(el); });
+  /* ── PAGE EXIT ── */
+  window.addEventListener('beforeunload', function() {
+    if (!C) return;
+    fire('Session Ended', {
+      session_duration_sec: Math.round((Date.now() - t0) / 1000),
+      max_scroll_depth: Object.keys(scrollMark).reduce(function(m,k){ return scrollMark[k] ? parseInt(k) : m; }, 0),
+      last_page: curPage,
+      is_merchant: !!user
+    });
+  });
+
+  /* ── SCROLL REVEAL ── */
+  function initReveal() {
+    var obs = new IntersectionObserver(function(entries) {
+      entries.forEach(function(e) {
+        if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); }
+      });
+    }, { threshold: 0.1 });
+    document.querySelectorAll('.reveal').forEach(function(el) { obs.observe(el); });
   }
+
+  /* ── INIT ── */
+  updateNav();
   initReveal();
+  document.querySelectorAll('[data-p="home"]').forEach(function(a) { a.classList.add('active'); });
+  if (C) { initScrollTrack(); registerObservers(); obsRegistered = true; }
 
-  // ── INIT ──────────────────────────────────────────────────────
-  // On load: if user is already logged in, restore dashboard state
-  if(user){
-    updateNav();
-    // If they're on a page that needs auth state reflected, go to dashboard
-    // Otherwise just restore the nav and let them stay on current page
-  } else {
-    updateNav();
-  }
-  document.querySelectorAll('[data-p="home"]').forEach(function(a){a.classList.add('active');});
-  if(C){ scrollTrack(); sectionObs(); }
+  /* if session restored, mount dashboard silently so nav shows correctly */
+  if (user) { mountDash(user); }
 
 })();
 </script>
