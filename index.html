@@ -9,7 +9,7 @@
 
   <script>
     var ANALYTICS_CONFIG = {
-      SEGMENT_WRITE_KEY: "suzg9Ck5EW9xT65CXpm456ObsF3r3K31",
+      SEGMENT_WRITE_KEY: "YOUR_SEGMENT_WRITE_KEY",
       POSTHOG_API_KEY:   "YOUR_POSTHOG_API_KEY",
       POSTHOG_HOST:      "https://app.posthog.com"
     };
@@ -964,7 +964,11 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
 
     if (C) {
       pgView(page);
-      fire('Page Navigated', { destination: page, source_page: src || prev });
+      fire('Page Navigated', {
+        destination: page,
+        source_page: src || prev,
+        page: page  // explicit page property — PostHog funnel filters on page = 'dashboard'
+      });
     }
 
     setTimeout(function () {
@@ -1131,8 +1135,10 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
 
     // Single clean event — KYC is done, merchant is live
     fire('KYC Verified', {
-      time_to_verify_sec: Math.round((Date.now() - t0) / 1000),
-      kyc_status:         'verified'
+      email:              user ? user.email : null,
+      merchant_id:        user ? user.merchant_id : null,
+      kyc_status:         'verified',
+      time_to_verify_sec: Math.round((Date.now() - t0) / 1000)
     });
 
     // Unlock live dashboard — remove test mode, remove alert
@@ -1169,6 +1175,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     if (!user) return;
     Object.assign(user, traits);
     try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
+    // identify() updates person properties in both Segment and PostHog.
+    // This is what makes breakdown by kyc_status work in PostHog —
+    // the person property must be updated, not just the event property.
     if (window.analytics && analytics.identify) analytics.identify(user.merchant_id, user);
     if (window.posthog  && posthog.identify)   posthog.identify(user.merchant_id, user);
   }
@@ -1291,7 +1300,22 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
 
     // 2. fire() — full traits on the track event, not just on identify
     //    user is already set by ident() so base payload has email + merchant_id
-    fire('Merchant Logged In', traits);
+    // track event is lean — only what's needed per PostHog funnel
+    // all traits are person properties via ident() above
+    fire('Merchant Logged In', {
+      email:                    traits.email,
+      merchant_id:              traits.merchant_id,
+      plan:                     traits.plan,
+      kyc_status:               traits.kyc_status,
+      onboarding_step:          traits.onboarding_step,
+      days_since_last_login:    traits.days_since_last_login,
+      preferred_payment_method: traits.preferred_payment_method,
+      preferred_corridor:       traits.preferred_corridor,
+      risk_score:               traits.risk_score,
+      trust_score:              traits.trust_score,
+      escrow_tier:              traits.escrow_tier,
+      is_returning_user:        traits.is_returning_user
+    });
 
     mountDash(traits);
     go('dashboard', 'login');
@@ -1335,13 +1359,28 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       transaction_volume_30d:   0,
       transaction_count_30d:    0,
       signup_date:              new Date().toISOString(),
+      days_since_last_login:    0,
       is_returning_user:        false,
       lead_source:              'website_signup',
       signup_form_duration_sec: sfT ? Math.round((Date.now() - sfT) / 1000) : null
     };
 
     ident(mid, traits);
-    fire('Merchant Signed Up', traits);
+    fire('Signed Up', {
+      email:                    traits.email,
+      merchant_id:              traits.merchant_id,
+      plan:                     traits.plan,
+      kyc_status:               traits.kyc_status,
+      onboarding_step:          traits.onboarding_step,
+      business_type:            traits.business_type,
+      days_since_last_login:    0,
+      preferred_payment_method: null,
+      preferred_corridor:       null,
+      risk_score:               traits.risk_score,
+      trust_score:              traits.trust_score,
+      escrow_tier:              traits.escrow_tier,
+      signup_form_duration_sec: traits.signup_form_duration_sec
+    });
     mountDash(traits);
     go('dashboard', 'signup');
   };
@@ -1365,23 +1404,26 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     var testBanner = document.getElementById('db-testmode');
     if (testBanner) testBanner.style.display = kycVerified ? 'none' : 'flex';
 
-    fire('Dashboard Loaded', Object.assign({}, t, {
-      is_churn_risk:    (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
-      is_high_risk:     (t.risk_score  || 0) > 0.6,
-      is_high_trust:    (t.trust_score || 0) > 0.7,
-      is_test_mode:     !kycVerified,
-      kyc_verified:     kycVerified
-    }));
+    fire('Dashboard Loaded', {
+      email:                    t.email,
+      merchant_id:              t.merchant_id,
+      plan:                     t.plan,
+      kyc_status:               t.kyc_status,
+      onboarding_step:          t.onboarding_step,
+      days_since_last_login:    t.days_since_last_login || 0,
+      preferred_payment_method: t.preferred_payment_method || null,
+      preferred_corridor:       t.preferred_corridor || null,
+      risk_score:               t.risk_score || 0,
+      trust_score:              t.trust_score || 0,
+      escrow_tier:              t.escrow_tier || 'standard',
+      is_churn_risk:            (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
+      is_high_risk:             (t.risk_score  || 0) > 0.6,
+      is_high_trust:            (t.trust_score || 0) > 0.7,
+      is_test_mode:             !kycVerified,
+      kyc_verified:             kycVerified
+    });
 
-    // Track test mode impression separately — useful for UC1 onboarding funnel
-    if (!kycVerified) {
-      fire('Test Mode Banner Shown', {
-        email:           t.email,
-        merchant_id:     t.merchant_id,
-        kyc_status:      t.kyc_status,
-        onboarding_step: t.onboarding_step
-      });
-    }
+
   }
 
   /* ════════════════════════════════════
