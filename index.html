@@ -9,7 +9,7 @@
 
   <script>
     var ANALYTICS_CONFIG = {
-      SEGMENT_WRITE_KEY: "suzg9Ck5EW9xT65CXpm456ObsF3r3K31",
+      SEGMENT_WRITE_KEY: "YOUR_SEGMENT_WRITE_KEY",
       POSTHOG_API_KEY:   "YOUR_POSTHOG_API_KEY",
       POSTHOG_HOST:      "https://app.posthog.com"
     };
@@ -253,11 +253,12 @@
 
     /* Checkout */
     .co-method{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--g200);border-radius:var(--r);cursor:pointer;transition:all .15s;background:var(--white)}
-    .co-method:hover{border-color:var(--black)}
+    .co-method:hover{border-color:var(--g400)}
     .co-method.selected{border-color:var(--black);background:var(--black);color:var(--white)}
     .co-method.selected .co-method-sub{color:rgba(255,255,255,.5)}
     .co-method.recommended{border-color:var(--blue);background:var(--blue-l)}
-    .co-method.recommended.selected{background:var(--black);border-color:var(--black)}
+    .co-method.recommended.selected{background:var(--black);border-color:var(--black);color:var(--white)}
+    .co-method.recommended.selected .co-method-sub{color:rgba(255,255,255,.5)}
     .co-method-icon{font-size:18px;flex-shrink:0}
     .co-method-name{font-size:13px;font-weight:500}
     .co-method-sub{font-size:11px;color:var(--g400)}
@@ -293,8 +294,8 @@
       <li><a onclick="go('docs')" data-p="docs">Docs</a></li>
     </ul>
     <div class="n-right" id="n-right">
-      <button class="btn bg" id="n-login" onclick="go('login')">Log in</button>
-      <button class="btn bp" id="n-signup" onclick="go('login')">Sign up free</button>
+      <button class="btn bg" onclick="go('login')">Log in</button>
+      <button class="btn bp" onclick="go('login')">Sign up free</button>
     </div>
   </div>
 </nav>
@@ -350,12 +351,12 @@
         <p class="ssub">From accepting your first payment to managing enterprise-grade payouts — CRUDPay scales with your business.</p>
       </div>
       <div class="fg">
-        <div class="fc reveal" data-feat="payment_gateway" id="fc-gateway"><div class="fi"><svg viewBox="0 0 18 18"><rect x="2" y="5" width="14" height="10" rx="2"/><path d="M2 8h14M5 12h2"/></svg></div><div class="ft">Payment Gateway</div><div class="fd">Accept 100+ payment methods — UPI, cards, net banking, wallets, BNPL — with a single integration.</div></div>
-        <div class="fc reveal" data-feat="payouts" id="fc-payouts"><div class="fi"><svg viewBox="0 0 18 18"><path d="M9 2v14M3 8l6-6 6 6"/></svg></div><div class="ft">Instant Payouts</div><div class="fd">Disburse funds to vendors, employees, and partners in real time across 80+ countries.</div></div>
-        <div class="fc reveal" data-feat="fraud_prevention" id="fc-fraud"><div class="fi"><svg viewBox="0 0 18 18"><path d="M9 2l6 3v5c0 3-2.5 5.5-6 7C5.5 15.5 3 13 3 10V5l6-3z"/></svg></div><div class="ft">Fraud Prevention</div><div class="fd">AI-powered risk scoring detects anomalies before they become chargebacks — 99.97% uptime.</div></div>
-        <div class="fc reveal" data-feat="analytics" id="fc-analytics"><div class="fi"><svg viewBox="0 0 18 18"><path d="M3 13l4-4 3 3 5-7"/><circle cx="3" cy="13" r="1.5" fill="currentColor"/></svg></div><div class="ft">Real-time Analytics</div><div class="fd">Track success rates, corridor performance, and revenue metrics across every channel.</div></div>
-        <div class="fc reveal" data-feat="kyc" id="fc-kyc"><div class="fi"><svg viewBox="0 0 18 18"><circle cx="9" cy="6" r="3"/><path d="M3 16c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></div><div class="ft">Merchant Onboarding</div><div class="fd">Automated KYC, bank verification, and compliance — onboard merchants in minutes, not days.</div></div>
-        <div class="fc reveal" data-feat="escrow" id="fc-escrow"><div class="fi"><svg viewBox="0 0 18 18"><rect x="3" y="8" width="12" height="8" rx="1.5"/><path d="M6 8V6a3 3 0 016 0v2"/></svg></div><div class="ft">Smart Escrow</div><div class="fd">Trust-based escrow release — high-trust merchants get faster payouts without manual review.</div></div>
+        <div class="fc reveal" data-feat="payment_gateway"><div class="fi"><svg viewBox="0 0 18 18"><rect x="2" y="5" width="14" height="10" rx="2"/><path d="M2 8h14M5 12h2"/></svg></div><div class="ft">Payment Gateway</div><div class="fd">Accept 100+ payment methods — UPI, cards, net banking, wallets, BNPL — with a single integration.</div></div>
+        <div class="fc reveal" data-feat="payouts"><div class="fi"><svg viewBox="0 0 18 18"><path d="M9 2v14M3 8l6-6 6 6"/></svg></div><div class="ft">Instant Payouts</div><div class="fd">Disburse funds to vendors, employees, and partners in real time across 80+ countries.</div></div>
+        <div class="fc reveal" data-feat="fraud_prevention"><div class="fi"><svg viewBox="0 0 18 18"><path d="M9 2l6 3v5c0 3-2.5 5.5-6 7C5.5 15.5 3 13 3 10V5l6-3z"/></svg></div><div class="ft">Fraud Prevention</div><div class="fd">AI-powered risk scoring detects anomalies before they become chargebacks — 99.97% uptime.</div></div>
+        <div class="fc reveal" data-feat="analytics"><div class="fi"><svg viewBox="0 0 18 18"><path d="M3 13l4-4 3 3 5-7"/><circle cx="3" cy="13" r="1.5" fill="currentColor"/></svg></div><div class="ft">Real-time Analytics</div><div class="fd">Track success rates, corridor performance, and revenue metrics across every channel.</div></div>
+        <div class="fc reveal" data-feat="kyc"><div class="fi"><svg viewBox="0 0 18 18"><circle cx="9" cy="6" r="3"/><path d="M3 16c0-3.3 2.7-6 6-6s6 2.7 6 6"/></svg></div><div class="ft">Merchant Onboarding</div><div class="fd">Automated KYC, bank verification, and compliance — onboard merchants in minutes, not days.</div></div>
+        <div class="fc reveal" data-feat="escrow"><div class="fi"><svg viewBox="0 0 18 18"><rect x="3" y="8" width="12" height="8" rx="1.5"/><path d="M6 8V6a3 3 0 016 0v2"/></svg></div><div class="ft">Smart Escrow</div><div class="fd">Trust-based escrow release — high-trust merchants get faster payouts without manual review.</div></div>
       </div>
     </div>
   </div>
@@ -376,14 +377,14 @@
       <h1 class="sh">Simple, transparent <em>pricing</em> that scales.</h1>
       <p class="ssub">No hidden fees. No setup costs. Pay only on successful transactions.</p>
       <div class="pr-grid reveal" id="pr-grid">
-        <div class="plan" id="pl-starter" data-plan="starter">
+        <div class="plan" data-plan="starter">
           <div class="pl-name">Starter</div>
           <div class="pl-price">2%<span> per txn</span></div>
           <p class="pl-desc">For individuals and early-stage businesses getting started.</p>
           <button class="btn bg pl-btn" onclick="selectPlan('starter')">Get started</button>
           <ul class="pl-feats"><li>UPI, cards, wallets</li><li>Basic dashboard</li><li>Email support</li><li>Standard payouts (T+2)</li><li>Basic fraud protection</li></ul>
         </div>
-        <div class="plan ft" id="pl-growth" data-plan="growth">
+        <div class="plan ft" data-plan="growth">
           <div class="pl-badge">Most popular</div>
           <div class="pl-name">Growth</div>
           <div class="pl-price">1.5%<span> per txn</span></div>
@@ -391,7 +392,7 @@
           <button class="btn pl-btn" style="background:var(--white);color:var(--black);border-color:var(--white)" onclick="selectPlan('growth')">Get started</button>
           <ul class="pl-feats"><li>All payment methods</li><li>Advanced analytics</li><li>Priority support</li><li>Instant payouts</li><li>Smart fraud detection</li><li>Multi-currency</li><li>KYC automation</li></ul>
         </div>
-        <div class="plan" id="pl-enterprise" data-plan="enterprise">
+        <div class="plan" data-plan="enterprise">
           <div class="pl-name">Enterprise</div>
           <div class="pl-price">Custom<span> pricing</span></div>
           <p class="pl-desc">For large platforms with high-volume, cross-border payment needs.</p>
@@ -457,10 +458,7 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
   currency: 'INR',
   payment_method: 'upi',
   merchant_id: 'mrc_xxxx',
-  customer: {
-    name: 'Priya Sharma',
-    email: 'priya@example.com'
-  }
+  customer: { name: 'Priya Sharma', email: 'priya@example.com' }
 });</pre>
       <h2>4. Handle the response</h2>
       <p>On success you receive a <code>payment</code> object with <code>status: created</code>. Listen for the <code>payment.captured</code> webhook to confirm funds.</p>
@@ -485,45 +483,41 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       <div id="lf">
         <div class="a-title">Welcome back</div>
         <div class="a-sub">Log in to your CRUDPay account</div>
-        <form onsubmit="doLogin(event)" novalidate>
-          <div id="l-err" style="display:none;background:#FEF2F2;color:#DC2626;font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA;"></div>
-          <div class="ff"><label>Email</label><input type="email" id="l-email" placeholder="you@company.com" autocomplete="email"/></div>
-          <div class="ff"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"/></div>
-          <button type="submit" class="btn bp" style="width:100%;justify-content:center;font-size:14px;padding:12px;margin-top:6px">Log in</button>
-        </form>
+        <div id="l-err" style="display:none;background:#FEF2F2;color:#DC2626;font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA;"></div>
+        <div class="ff"><label>Email</label><input type="email" id="l-email" placeholder="you@company.com" autocomplete="email"/></div>
+        <div class="ff"><label>Password</label><input type="password" id="l-pass" placeholder="••••••••"/></div>
+        <button type="button" class="btn bp" style="width:100%;justify-content:center;font-size:14px;padding:12px;margin-top:6px" onclick="doLogin()">Log in</button>
         <div class="a-footer">No account? <a onclick="authTab('signup')">Sign up free</a></div>
       </div>
       <div id="sf" style="display:none">
         <div class="a-title">Create your account</div>
         <div class="a-sub">Start accepting payments in minutes</div>
-        <form onsubmit="doSignup(event)" novalidate>
-          <div id="s-err" style="display:none;background:#FEF2F2;color:#DC2626;font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA;"></div>
-          <div class="f-row">
-            <div class="ff"><label>First name</label><input type="text" id="s-first" placeholder="Priya"/></div>
-            <div class="ff"><label>Last name</label><input type="text" id="s-last" placeholder="Sharma"/></div>
-          </div>
-          <div class="ff"><label>Work email</label><input type="email" id="s-email" placeholder="priya@company.com"/></div>
-          <div class="ff"><label>Business name</label><input type="text" id="s-biz" placeholder="Shopkart India"/></div>
-          <div class="ff"><label>Business type</label>
-            <select id="s-btype" onchange="trackSField('business_type',this.value)">
-              <option value="">Select type</option>
-              <option value="ecommerce">E-commerce</option>
-              <option value="saas">SaaS / Software</option>
-              <option value="marketplace">Marketplace</option>
-              <option value="logistics">Logistics</option>
-              <option value="fintech">Fintech</option>
-              <option value="other">Other</option>
-            </select>
-          </div>
-          <button type="submit" class="btn bp" style="width:100%;justify-content:center;font-size:14px;padding:12px;margin-top:6px">Create account</button>
-        </form>
+        <div id="s-err" style="display:none;background:#FEF2F2;color:#DC2626;font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA;"></div>
+        <div class="f-row">
+          <div class="ff"><label>First name</label><input type="text" id="s-first" placeholder="Priya"/></div>
+          <div class="ff"><label>Last name</label><input type="text" id="s-last" placeholder="Sharma"/></div>
+        </div>
+        <div class="ff"><label>Work email</label><input type="email" id="s-email" placeholder="priya@company.com"/></div>
+        <div class="ff"><label>Business name</label><input type="text" id="s-biz" placeholder="Shopkart India"/></div>
+        <div class="ff"><label>Business type</label>
+          <select id="s-btype" onchange="trackSField('business_type',this.value)">
+            <option value="">Select type</option>
+            <option value="ecommerce">E-commerce</option>
+            <option value="saas">SaaS / Software</option>
+            <option value="marketplace">Marketplace</option>
+            <option value="logistics">Logistics</option>
+            <option value="fintech">Fintech</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+        <button type="button" class="btn bp" style="width:100%;justify-content:center;font-size:14px;padding:12px;margin-top:6px" onclick="doSignup()">Create account</button>
         <div class="a-footer">Already have an account? <a onclick="authTab('login')">Log in</a></div>
       </div>
     </div>
   </div>
 </div>
 
-<!-- ══ KYC GATE — shown after signup/login until verified ══ -->
+<!-- ══ KYC GATE — single canonical KYC form, no duplicate IDs ══ -->
 <div class="pg" id="pg-kyc-gate" style="background:var(--g50);min-height:100vh">
   <div style="max-width:680px;margin:0 auto;padding:48px 32px">
     <div style="margin-bottom:32px">
@@ -533,12 +527,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       </div>
       <div style="font-size:13.5px;color:var(--g600);line-height:1.7">Complete KYC to access your dashboard, accept payments, and receive settlements. Takes about 5 minutes.</div>
     </div>
-
-    <!-- Progress bar -->
     <div style="background:var(--g200);border-radius:100px;height:6px;margin-bottom:32px;overflow:hidden">
       <div id="kyc-progress-bar" style="height:100%;background:var(--black);border-radius:100px;transition:width .5s ease;width:0%"></div>
     </div>
-
     <!-- Step 1 -->
     <div class="kyc-step" id="kyc-s1">
       <div class="kyc-step-hdr">
@@ -561,13 +552,12 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
         </div>
         <div class="kyc-form-row">
           <div class="ff"><label>GST Number</label><input type="text" id="kyc-gst" placeholder="22AAAAA0000A1Z5" /></div>
-          <div class="ff"><label>PAN Number</label><input type="text" id="kyc-pan" placeholder="AAAPL1234C" /></div>
+          <div class="ff"><label>PAN Number</label><input type="text" id="kyc-pan-num" placeholder="AAAPL1234C" /></div>
         </div>
         <div class="ff" style="margin-bottom:16px"><label>Registered Address</label><input type="text" id="kyc-addr" placeholder="123, MG Road, Bangalore - 560001" /></div>
         <button class="btn bp" onclick="kycNext(1)">Save & Continue</button>
       </div>
     </div>
-
     <!-- Step 2 -->
     <div class="kyc-step" id="kyc-s2" style="opacity:.5;pointer-events:none">
       <div class="kyc-step-hdr">
@@ -599,7 +589,6 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
         <button class="btn bp" id="kyc-doc-btn" onclick="kycNext(2)" style="margin-top:16px;opacity:.4;pointer-events:none">Continue</button>
       </div>
     </div>
-
     <!-- Step 3 -->
     <div class="kyc-step" id="kyc-s3" style="opacity:.5;pointer-events:none">
       <div class="kyc-step-hdr">
@@ -619,7 +608,6 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
         <button class="btn bp" onclick="kycNext(3)">Verify & Submit</button>
       </div>
     </div>
-
     <!-- Step 4 -->
     <div class="kyc-step" id="kyc-s4" style="opacity:.5;pointer-events:none">
       <div class="kyc-step-hdr">
@@ -628,14 +616,13 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
         <div class="kyc-step-status" id="kyc-st-4" style="color:var(--g400)">Pending</div>
       </div>
     </div>
+    <!-- Success banner injected here by verifyMerchant() -->
+    <div id="kyc-success-wrap"></div>
   </div>
 </div>
 
-
 <!-- ══ DASHBOARD ══ -->
 <div class="db-pg" id="pg-db">
-
-  <!-- Dashboard Sub-nav -->
   <div style="background:var(--white);border-bottom:1px solid var(--g200);padding:0 32px;position:sticky;top:60px;z-index:100">
     <div style="max-width:1160px;margin:0 auto;display:flex;gap:0">
       <button class="db-tab on" id="dbt-overview" onclick="dbTab('overview')">Overview</button>
@@ -652,15 +639,12 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
         <p id="db-sub">· ·</p>
       </div>
       <div style="display:flex;gap:10px;align-items:center;flex-wrap:wrap">
-        <div class="db-alert" id="db-kyc-alrt" onclick="dbTab('kyc')" style="cursor:pointer">⚠ KYC pending — click to complete verification</div>
         <button class="btn bg" onclick="doLogout()">Log out</button>
       </div>
     </div>
 
     <!-- OVERVIEW TAB -->
     <div id="db-overview">
-
-
       <div class="db-stats">
         <div class="db-sc" data-stat="gmv"><div class="db-sl">GMV today</div><div class="db-sn">₹2,41,800</div><div class="db-sd up">↑ 12.4% vs yesterday</div></div>
         <div class="db-sc" data-stat="success_rate"><div class="db-sl">Success rate</div><div class="db-sn">98.2%</div><div class="db-sd up">↑ 0.3% vs last week</div></div>
@@ -676,128 +660,11 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
           <div class="tr"><div class="tr-ic">🔄</div><div><div class="tr-n">Refund — Order #4710</div><div class="tr-id">rfnd_Yx2bFm8kQ5</div></div><div><div class="tr-a">-₹950</div><span class="ts ts-f">Refunded</span></div></div>
         </div>
         <div class="db-card">
-          <div class="db-ct">Account setup <span class="db-ca" onclick="dbTab('kyc')">Complete KYC →</span></div>
+          <div class="db-ct">Account setup</div>
           <div class="ob-step"><div class="ob-d ob-done">✓</div><div><div class="ob-tx">Account created</div><div class="ob-sx">Email verified</div></div><div class="ob-st up">Done</div></div>
-          <div class="ob-step" id="ob-kyc-step"><div class="ob-d ob-cur">!</div><div><div class="ob-tx">KYC verification</div><div class="ob-sx">Upload PAN & GST</div></div><div class="ob-st" style="color:var(--amber)" id="ob-kyc-st">Pending</div></div>
-          <div class="ob-step" id="ob-bank-step"><div class="ob-d ob-todo" id="ob-bank-d">3</div><div><div class="ob-tx">Bank account</div><div class="ob-sx">Add settlement account</div></div><div class="ob-st" style="color:var(--g400)">To do</div></div>
-          <div class="ob-step"><div class="ob-d ob-todo">4</div><div><div class="ob-tx">Go live</div><div class="ob-sx">Activate production</div></div><div class="ob-st" style="color:var(--g400)">To do</div></div>
-        </div>
-      </div>
-    </div>
-
-    <!-- KYC tab removed — KYC is now a gate page pre-dashboard -->
-    <div id="db-kyc" style="display:none">
-      <div style="max-width:680px">
-        <div style="margin-bottom:28px">
-          <div style="font-size:18px;font-weight:600;margin-bottom:6px">KYC Verification</div>
-          <div style="font-size:13px;color:var(--g600)">Complete verification to unlock higher transaction limits, instant payouts, and full platform access.</div>
-        </div>
-
-        <!-- Progress bar -->
-        <div style="background:var(--g100);border-radius:100px;height:6px;margin-bottom:32px;overflow:hidden">
-          <div id="kyc-progress-bar" style="height:100%;background:var(--black);border-radius:100px;transition:width .4s ease;width:25%"></div>
-        </div>
-
-        <!-- Step 1: Business Details -->
-        <div class="kyc-step" id="kyc-s1">
-          <div class="kyc-step-hdr">
-            <div class="kyc-step-num" id="kyc-num-1">1</div>
-            <div>
-              <div class="kyc-step-title">Business Information</div>
-              <div class="kyc-step-sub">Legal business name, type, and registration details</div>
-            </div>
-            <div class="kyc-step-status" id="kyc-st-1">In progress</div>
-          </div>
-          <div class="kyc-step-body" id="kyc-body-1">
-            <div class="kyc-form-row">
-              <div class="ff"><label>Legal Business Name</label><input type="text" id="kyc-bizname" placeholder="Shopkart India Pvt. Ltd." /></div>
-              <div class="ff"><label>Business Type</label>
-                <select id="kyc-biztype">
-                  <option value="">Select</option>
-                  <option value="private_limited">Private Limited</option>
-                  <option value="llp">LLP</option>
-                  <option value="sole_proprietor">Sole Proprietorship</option>
-                  <option value="partnership">Partnership</option>
-                </select>
-              </div>
-            </div>
-            <div class="kyc-form-row">
-              <div class="ff"><label>GST Number</label><input type="text" id="kyc-gst" placeholder="22AAAAA0000A1Z5" /></div>
-              <div class="ff"><label>PAN Number</label><input type="text" id="kyc-pan" placeholder="AAAPL1234C" /></div>
-            </div>
-            <div class="ff" style="margin-bottom:16px"><label>Registered Address</label><input type="text" id="kyc-addr" placeholder="123, MG Road, Bangalore - 560001" /></div>
-            <button class="btn bp" onclick="kycNext(1)">Save & Continue</button>
-          </div>
-        </div>
-
-        <!-- Step 2: Document Upload -->
-        <div class="kyc-step" id="kyc-s2" style="opacity:.5;pointer-events:none">
-          <div class="kyc-step-hdr">
-            <div class="kyc-step-num" id="kyc-num-2">2</div>
-            <div>
-              <div class="kyc-step-title">Document Upload</div>
-              <div class="kyc-step-sub">PAN card, GST certificate, and incorporation proof</div>
-            </div>
-            <div class="kyc-step-status" id="kyc-st-2" style="color:var(--g400)">Pending</div>
-          </div>
-          <div class="kyc-step-body" id="kyc-body-2" style="display:none">
-            <div class="kyc-upload-row">
-              <div class="kyc-upload" id="ku-pan" onclick="kycUpload('pan')">
-                <div style="font-size:22px;margin-bottom:8px">📄</div>
-                <div style="font-size:13px;font-weight:500">PAN Card</div>
-                <div style="font-size:11px;color:var(--g400);margin-top:4px">PDF or JPG, max 5MB</div>
-                <div class="kyc-upload-status" id="ku-pan-st">Click to upload</div>
-              </div>
-              <div class="kyc-upload" id="ku-gst" onclick="kycUpload('gst')">
-                <div style="font-size:22px;margin-bottom:8px">📋</div>
-                <div style="font-size:13px;font-weight:500">GST Certificate</div>
-                <div style="font-size:11px;color:var(--g400);margin-top:4px">PDF or JPG, max 5MB</div>
-                <div class="kyc-upload-status" id="ku-gst-st">Click to upload</div>
-              </div>
-              <div class="kyc-upload" id="ku-incorporation" onclick="kycUpload('incorporation')">
-                <div style="font-size:22px;margin-bottom:8px">🏢</div>
-                <div style="font-size:13px;font-weight:500">Incorporation Proof</div>
-                <div style="font-size:11px;color:var(--g400);margin-top:4px">COI or Partnership deed</div>
-                <div class="kyc-upload-status" id="ku-incorporation-st">Click to upload</div>
-              </div>
-            </div>
-            <button class="btn bp" id="kyc-doc-btn" onclick="kycNext(2)" style="margin-top:16px;opacity:.4;pointer-events:none">Continue</button>
-          </div>
-        </div>
-
-        <!-- Step 3: Bank Account -->
-        <div class="kyc-step" id="kyc-s3" style="opacity:.5;pointer-events:none">
-          <div class="kyc-step-hdr">
-            <div class="kyc-step-num" id="kyc-num-3">3</div>
-            <div>
-              <div class="kyc-step-title">Bank Account</div>
-              <div class="kyc-step-sub">Settlement account for payouts</div>
-            </div>
-            <div class="kyc-step-status" id="kyc-st-3" style="color:var(--g400)">Pending</div>
-          </div>
-          <div class="kyc-step-body" id="kyc-body-3" style="display:none">
-            <div class="kyc-form-row">
-              <div class="ff"><label>Account Holder Name</label><input type="text" id="kyc-acname" placeholder="Shopkart India Pvt. Ltd." /></div>
-              <div class="ff"><label>Account Number</label><input type="text" id="kyc-acnum" placeholder="••••••••••••" /></div>
-            </div>
-            <div class="kyc-form-row">
-              <div class="ff"><label>IFSC Code</label><input type="text" id="kyc-ifsc" placeholder="HDFC0001234" /></div>
-              <div class="ff"><label>Bank Name</label><input type="text" id="kyc-bank" placeholder="HDFC Bank" /></div>
-            </div>
-            <button class="btn bp" onclick="kycNext(3)">Verify & Submit</button>
-          </div>
-        </div>
-
-        <!-- Step 4: Review -->
-        <div class="kyc-step" id="kyc-s4" style="opacity:.5;pointer-events:none">
-          <div class="kyc-step-hdr">
-            <div class="kyc-step-num" id="kyc-num-4">4</div>
-            <div>
-              <div class="kyc-step-title">Under Review</div>
-              <div class="kyc-step-sub">Typically completed in 1–2 business days</div>
-            </div>
-            <div class="kyc-step-status" id="kyc-st-4" style="color:var(--g400)">Pending</div>
-          </div>
+          <div class="ob-step"><div class="ob-d ob-done">✓</div><div><div class="ob-tx">KYC verification</div><div class="ob-sx">Business verified</div></div><div class="ob-st up">Done</div></div>
+          <div class="ob-step"><div class="ob-d ob-done">✓</div><div><div class="ob-tx">Bank account</div><div class="ob-sx">Settlement account active</div></div><div class="ob-st up">Done</div></div>
+          <div class="ob-step"><div class="ob-d ob-done">✓</div><div><div class="ob-tx">Go live</div><div class="ob-sx">Production activated</div></div><div class="ob-st up">Done</div></div>
         </div>
       </div>
     </div>
@@ -810,7 +677,6 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
         <div class="db-card" id="checkout-form-wrap">
           <div class="db-ct">New Payment</div>
 
-          <!-- Corridor selector — drives preferred method suggestion -->
           <div class="ff" style="margin-bottom:14px">
             <label>Payment Corridor</label>
             <select id="co-corridor" onchange="onCorridorChange(this.value)">
@@ -834,7 +700,7 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
             </div>
           </div>
 
-          <!-- Recommended method banner — shown based on corridor -->
+          <!-- Recommendation banner -->
           <div id="co-recommendation" style="display:none;background:var(--blue-l);border:1px solid #BFDBFE;border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1e40af">
             <span id="co-rec-text"></span>
           </div>
@@ -843,27 +709,27 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
           <div style="margin-bottom:16px">
             <label style="font-size:12px;font-weight:500;color:var(--g600);display:block;margin-bottom:8px">Payment Method</label>
             <div id="co-methods" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
-              <div class="co-method" id="pm-upi" data-method="UPI" onclick="selectMethod('UPI')">
+              <div class="co-method" id="pm-UPI" data-method="UPI" onclick="selectMethod('UPI')">
                 <span class="co-method-icon">⚡</span>
                 <div><div class="co-method-name">UPI</div><div class="co-method-sub">Instant · Free</div></div>
               </div>
-              <div class="co-method" id="pm-card" data-method="Card" onclick="selectMethod('Card')">
+              <div class="co-method" id="pm-Card" data-method="Card" onclick="selectMethod('Card')">
                 <span class="co-method-icon">💳</span>
                 <div><div class="co-method-name">Card</div><div class="co-method-sub">Visa / Mastercard</div></div>
               </div>
-              <div class="co-method" id="pm-neft" data-method="NEFT" onclick="selectMethod('NEFT')">
+              <div class="co-method" id="pm-NEFT" data-method="NEFT" onclick="selectMethod('NEFT')">
                 <span class="co-method-icon">🏦</span>
                 <div><div class="co-method-name">NEFT / IMPS</div><div class="co-method-sub">Bank transfer</div></div>
               </div>
-              <div class="co-method" id="pm-pix" data-method="PIX" onclick="selectMethod('PIX')">
+              <div class="co-method" id="pm-PIX" data-method="PIX" onclick="selectMethod('PIX')">
                 <span class="co-method-icon">🇧🇷</span>
                 <div><div class="co-method-name">PIX</div><div class="co-method-sub">Brazil · Instant</div></div>
               </div>
-              <div class="co-method" id="pm-sofort" data-method="SOFORT" onclick="selectMethod('SOFORT')">
+              <div class="co-method" id="pm-SOFORT" data-method="SOFORT" onclick="selectMethod('SOFORT')">
                 <span class="co-method-icon">🇪🇺</span>
                 <div><div class="co-method-name">SOFORT</div><div class="co-method-sub">EU bank transfer</div></div>
               </div>
-              <div class="co-method" id="pm-wallet" data-method="Wallet" onclick="selectMethod('Wallet')">
+              <div class="co-method" id="pm-Wallet" data-method="Wallet" onclick="selectMethod('Wallet')">
                 <span class="co-method-icon">👜</span>
                 <div><div class="co-method-name">Wallet</div><div class="co-method-sub">Paytm / PhonePe</div></div>
               </div>
@@ -873,36 +739,21 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
           <div id="co-err" style="display:none;background:var(--red-l);color:var(--red);font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA"></div>
 
           <div style="display:flex;gap:10px">
-            <button class="btn bp" style="flex:1;justify-content:center" id="co-submit-btn" onclick="submitCheckout()">Review Payment</button>
+            <button class="btn bp" style="flex:1;justify-content:center" onclick="submitCheckout()">Review Payment</button>
             <button class="btn bg" onclick="abandonCheckout()">Cancel</button>
           </div>
         </div>
 
-        <!-- Right: Review / Confirm panel -->
+        <!-- Right: Review panel -->
         <div id="co-review-wrap" style="display:none">
           <div class="db-card" style="margin-bottom:14px">
             <div class="db-ct">Review Payment</div>
-            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
-              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)">
-                <span style="color:var(--g600)">Corridor</span>
-                <span id="rv-corridor" style="font-weight:500"></span>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)">
-                <span style="color:var(--g600)">Amount</span>
-                <span id="rv-amount" style="font-weight:500"></span>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)">
-                <span style="color:var(--g600)">Recipient</span>
-                <span id="rv-recipient" style="font-weight:500"></span>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)">
-                <span style="color:var(--g600)">Payment Method</span>
-                <span id="rv-method" style="font-weight:500"></span>
-              </div>
-              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0">
-                <span style="color:var(--g600)">Est. Fee</span>
-                <span id="rv-fee" style="font-weight:500;color:var(--green)"></span>
-              </div>
+            <div style="display:flex;flex-direction:column;gap:0;margin-bottom:20px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)"><span style="color:var(--g600)">Corridor</span><span id="rv-corridor" style="font-weight:500"></span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)"><span style="color:var(--g600)">Amount</span><span id="rv-amount" style="font-weight:500"></span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)"><span style="color:var(--g600)">Recipient</span><span id="rv-recipient" style="font-weight:500"></span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)"><span style="color:var(--g600)">Payment Method</span><span id="rv-method" style="font-weight:500"></span></div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0"><span style="color:var(--g600)">Est. Fee</span><span id="rv-fee" style="font-weight:500;color:var(--green)"></span></div>
             </div>
             <div style="display:flex;gap:10px">
               <button class="btn bp" style="flex:1;justify-content:center" onclick="confirmCheckout()">Confirm & Send</button>
@@ -956,35 +807,46 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       </div>
     </div>
 
-  </div>
-</div>
+  </div><!-- /db-w -->
+</div><!-- /pg-db -->
 
 
 <script>
 (function () {
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      STATE
-  ════════════════════════════════════ */
-  var C    = false;                          // consent granted
+  ════════════════════════ */
+  var C    = false;
   var sid  = 'sess_' + Date.now() + '_' + Math.random().toString(36).substr(2,6);
   var t0   = Date.now();
-  var cur  = 'home';                         // current page
-  var user = null;                           // null = anonymous
-  var scrollFired = {};                      // {25:true, 50:true ...}
-  var obsRegistered = false;                 // observers registered once only
-  var kycStep = 1;                           // current KYC step (1-4)
-  var kycUploads = {};                       // { pan: true, gst: false, ... }
-  var sfT  = null;                           // signup form start time
+  var cur  = 'home';
+  var user = null;
+  var scrollFired = {};
+  var obsRegistered = false;
+  var kycUploads = {};
+  var sfT  = null;
 
-  /* ════════════════════════════════════
+  // Checkout state — all declared here, accessible to all checkout functions
+  var selectedMethod  = null;
+  var selectedCorridor = null;
+  var checkoutStarted = false;
+  var checkoutStartTs = null;
+  var currentAmount   = null;
+  var currentRecipient = null;
+
+  // Corridor → recommended method map (drives UC2 demo)
+  var corridorMethodMap = {
+    'INR-USD': 'UPI',
+    'INR-EUR': 'SOFORT',
+    'INR-BRL': 'PIX',
+    'INR-MXN': 'Card',
+    'INR-GBP': 'NEFT'
+  };
+
+  /* ════════════════════════
      RESTORE SESSION
-     Sets user before anything else runs,
-     so boot() can re-identify immediately.
-  ════════════════════════════════════ */
-  // Each email gets its own profile stored as 'cp_user_<email>'.
-  // 'cp_session' holds the email of whoever is currently logged in.
-  // On restore we look up their specific profile, not a single shared slot.
+  ════════════════════════ */
   try {
     var activeEmail = localStorage.getItem('cp_session');
     if (activeEmail) {
@@ -993,9 +855,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     }
   } catch (e) {}
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      CONSENT
-  ════════════════════════════════════ */
+  ════════════════════════ */
   try {
     var cs = localStorage.getItem('cp_c');
     if      (cs === 'y') { document.getElementById('cb').classList.add('h'); boot(); }
@@ -1018,26 +880,16 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     if (window.analytics && !window.analytics.initialize)
       analytics.load(ANALYTICS_CONFIG.SEGMENT_WRITE_KEY);
     if (window.posthog) posthog.opt_in_capturing();
-
-    // Re-identify restored session
-    if (user) ident(user.merchant_id, user, /* silent= */ true);
-
+    if (user) ident(user.merchant_id, user, true);
     pgView(cur);
     sessionStart();
-
     window.addEventListener('scroll', onScroll, { passive: true });
-
-    // Observers registered exactly once — never again
     if (!obsRegistered) { registerObservers(); obsRegistered = true; }
   }
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      CORE DISPATCH
-     fire() always stamps email + merchant_id from user state.
-     Props override base — explicit always wins.
-     ident() sets user SYNCHRONOUSLY before any fire() call,
-     so user context is always present on Merchant Logged In.
-  ════════════════════════════════════ */
+  ════════════════════════ */
   function fire(ev, props) {
     if (!C) return;
     var p = Object.assign({
@@ -1046,34 +898,30 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       ts:          new Date().toISOString(),
       elapsed_sec: Math.round((Date.now() - t0) / 1000),
       user_type:   user ? 'merchant' : 'anonymous',
-      email:       user ? user.email        : null,
-      merchant_id: user ? user.merchant_id  : null,
-      plan:        user ? user.plan         : null
+      email:       user ? user.email       : null,
+      merchant_id: user ? user.merchant_id : null,
+      plan:        user ? user.plan        : null
     }, props || {});
     if (window.analytics && analytics.track) analytics.track(ev, p);
     if (window.posthog  && posthog.capture)  posthog.capture(ev, p);
   }
 
   function ident(mid, traits, silent) {
-    // Always set JS state first — no consent check
     user = Object.assign({ merchant_id: mid }, traits);
     if (!silent && traits.email) {
       try {
-        // Store profile under email-specific key so each merchant has their own record
         localStorage.setItem('cp_user_' + traits.email, JSON.stringify(user));
-        // Write active session pointer
         localStorage.setItem('cp_session', traits.email);
       } catch (e) {}
     }
-    // Send to tools only if consented
     if (!C) return;
     if (window.analytics && analytics.identify) analytics.identify(mid, traits);
     if (window.posthog  && posthog.identify)   posthog.identify(mid, traits);
   }
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      PAGE VIEW + SESSION
-  ════════════════════════════════════ */
+  ════════════════════════ */
   function pgView(name) {
     var q = new URLSearchParams(window.location.search);
     if (window.analytics && analytics.page)
@@ -1107,10 +955,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     try { localStorage.setItem('cp_ret', '1'); } catch (e) {}
   }
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      SCROLL DEPTH
-     Single listener added once in boot().
-  ════════════════════════════════════ */
+  ════════════════════════ */
   function onScroll() {
     var pct = Math.round((window.scrollY / Math.max(1, document.body.scrollHeight - window.innerHeight)) * 100);
     [25, 50, 75, 90].forEach(function (m) {
@@ -1121,19 +968,10 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     });
   }
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      INTERSECTION OBSERVERS
-     Called once. Each observer has its own
-     `seen` flag — no shared state, no dupes.
-  ════════════════════════════════════ */
+  ════════════════════════ */
   function registerObservers() {
-    function observe(el, threshold, cb) {
-      new IntersectionObserver(function (entries) {
-        if (entries[0].isIntersecting) { cb(); }
-      }, { threshold: threshold }).observe(el);
-    }
-
-    // Feature cards — seen flag per element, unobserved after first fire
     document.querySelectorAll('.fc').forEach(function (el) {
       var feat = el.dataset.feat, seen = false;
       new IntersectionObserver(function (entries, obs) {
@@ -1143,15 +981,12 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
           obs.unobserve(el);
         }
       }, { threshold: 0.6 }).observe(el);
-
       var hs = null;
       el.addEventListener('mouseenter', function () { hs = Date.now(); });
       el.addEventListener('mouseleave', function () {
         if (hs) { var ms = Date.now() - hs; if (ms > 1000) fire('Feature Engaged', { feature_id: feat, hover_ms: ms }); hs = null; }
       });
     });
-
-    // Pricing plans
     document.querySelectorAll('.plan').forEach(function (el) {
       var plan = el.dataset.plan, seen = false;
       new IntersectionObserver(function (entries, obs) {
@@ -1160,8 +995,6 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
         }
       }, { threshold: 0.7 }).observe(el);
     });
-
-    // FAQ
     document.querySelectorAll('.faq-i').forEach(function (el) {
       var faq = el.dataset.faq, seen = false;
       new IntersectionObserver(function (entries, obs) {
@@ -1170,8 +1003,6 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
         }
       }, { threshold: 0.8 }).observe(el);
     });
-
-    // Dashboard stat cards
     document.querySelectorAll('.db-sc').forEach(function (el) {
       var stat = el.dataset.stat, seen = false;
       new IntersectionObserver(function (entries, obs) {
@@ -1182,22 +1013,17 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     });
   }
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      NAVIGATION
-  ════════════════════════════════════ */
+  ════════════════════════ */
   window.go = function (page, src) {
     var prev = cur;
-
-    // Auth guards
     if (page === 'login' && user) {
-      // Logged in — send to KYC gate if not verified, dashboard if verified
       page = (user.kyc_status === 'verified') ? 'dashboard' : 'kyc-gate';
     }
     if (page === 'dashboard' && !user) page = 'login';
-    // Block unverified merchants from reaching dashboard directly
     if (page === 'dashboard' && user && user.kyc_status !== 'verified') page = 'kyc-gate';
     if (page === 'kyc-gate'  && !user) page = 'login';
-    // Verified merchants don't need the gate
     if (page === 'kyc-gate'  && user && user.kyc_status === 'verified') page = 'dashboard';
 
     document.querySelectorAll('.pg, .db-pg').forEach(function (p) { p.classList.remove('on'); });
@@ -1206,33 +1032,25 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     });
     var el = document.getElementById(page === 'dashboard' ? 'pg-db' : 'pg-' + page);
     if (el) el.classList.add('on');
-
     window.scrollTo(0, 0);
     scrollFired = {};
     t0 = Date.now();
     cur = page;
-
     updateNav();
-    updateHero();   // swap hero CTAs based on auth state
-
+    updateHero();
     if (C) {
       pgView(page);
-      fire('Page Navigated', {
-        destination: page,
-        source_page: src || prev,
-        page: page  // explicit page property — PostHog funnel filters on page = 'dashboard'
-      });
+      fire('Page Navigated', { destination: page, source_page: src || prev, page: page });
     }
-
     setTimeout(function () {
       document.querySelectorAll('.reveal').forEach(function (r) { r.classList.remove('on'); });
       initReveal();
     }, 50);
   };
 
-  /* ════════════════════════════════════
-     NAV — single source of truth
-  ════════════════════════════════════ */
+  /* ════════════════════════
+     NAV
+  ════════════════════════ */
   function updateNav() {
     var nr = document.getElementById('n-right');
     if (user) {
@@ -1248,9 +1066,6 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     }
   }
 
-  /* ════════════════════════════════════
-     HERO ACTIONS — swap based on auth
-  ════════════════════════════════════ */
   function updateHero() {
     var wrap = document.getElementById('hero-actions');
     if (!wrap) return;
@@ -1262,7 +1077,6 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       wrap.innerHTML =
         '<button class="btn bp bl" id="h-cta1" onclick="go(\'login\')">Create account</button>' +
         '<button class="btn bg bl" id="h-cta2" onclick="go(\'docs\')">See the docs</button>';
-      // Re-attach analytics listeners on freshly created elements
       var c1 = document.getElementById('h-cta1');
       var c2 = document.getElementById('h-cta2');
       if (c1) c1.addEventListener('click', function () { fire('CTA Clicked', { cta_id: 'hero_create_account', location: 'hero', type: 'primary' }); });
@@ -1270,9 +1084,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     }
   }
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      DASHBOARD TABS
-  ════════════════════════════════════ */
+  ════════════════════════ */
   window.dbTab = function (tab) {
     ['overview', 'send', 'kyc', 'transactions', 'settings'].forEach(function (t) {
       var el = document.getElementById('db-' + t);
@@ -1293,213 +1107,434 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     var biz = document.getElementById('set-biz').value.trim();
     if (biz && user) {
       user.business_name = biz;
-      try {
-        if (user.email) localStorage.setItem('cp_user_' + user.email, JSON.stringify(user));
-      } catch (e) {}
+      try { if (user.email) localStorage.setItem('cp_user_' + user.email, JSON.stringify(user)); } catch (e) {}
       fire('Settings Saved', { field: 'business_name', new_value: biz });
     }
   };
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
+     SEND PAYMENT TAB OPEN
+     FIX: was missing entirely
+  ════════════════════════ */
+  function onSendTabOpen() {
+    // If user has a preferred corridor, pre-select it
+    if (user && user.preferred_corridor) {
+      var corridorEl = document.getElementById('co-corridor');
+      if (corridorEl && !corridorEl.value) {
+        corridorEl.value = user.preferred_corridor;
+        onCorridorChange(user.preferred_corridor);
+      }
+    }
+    // Fire Checkout Started only once per tab open if not already started
+    if (!checkoutStarted) {
+      checkoutStarted = true;
+      checkoutStartTs = Date.now();
+      fire('Checkout Started', {
+        merchant_id:              user ? user.merchant_id : null,
+        preferred_corridor:       user ? user.preferred_corridor : null,
+        preferred_payment_method: user ? user.preferred_payment_method : null,
+        plan:                     user ? user.plan : null
+      });
+    }
+  }
+
+  /* ════════════════════════
+     CORRIDOR CHANGE
+     FIX: was missing entirely
+  ════════════════════════ */
+  window.onCorridorChange = function (corridor) {
+    selectedCorridor = corridor;
+    if (!corridor) {
+      document.getElementById('co-recommendation').style.display = 'none';
+      return;
+    }
+
+    var recommended = corridorMethodMap[corridor] || null;
+    var userPreferred = user ? user.preferred_payment_method : null;
+
+    // Show recommendation banner
+    var recDiv = document.getElementById('co-recommendation');
+    var recText = document.getElementById('co-rec-text');
+    if (recommended) {
+      var isPersonalised = userPreferred && userPreferred === recommended;
+      recText.innerHTML = isPersonalised
+        ? '⚡ <strong>' + recommended + '</strong> is your preferred method for ' + corridor + ' — surfaced first for you.'
+        : '💡 <strong>' + recommended + '</strong> is recommended for ' + corridor + ' corridor — fastest & lowest fee.';
+      recDiv.style.display = 'block';
+
+      // Highlight recommended method card
+      document.querySelectorAll('.co-method').forEach(function (el) {
+        el.classList.remove('recommended');
+        if (el.dataset.method === recommended) el.classList.add('recommended');
+      });
+    } else {
+      recDiv.style.display = 'none';
+      document.querySelectorAll('.co-method').forEach(function(el){ el.classList.remove('recommended'); });
+    }
+
+    // Track corridor selection event
+    fire('Checkout Corridor Selected', {
+      corridor: corridor,
+      recommended_method: recommended,
+      user_preferred_method: userPreferred,
+      is_preferred_corridor: user && user.preferred_corridor === corridor
+    });
+  };
+
+  /* ════════════════════════
+     AMOUNT INPUT
+     FIX: was missing entirely
+  ════════════════════════ */
+  window.onAmountInput = function (val) {
+    currentAmount = val ? parseFloat(val) : null;
+  };
+
+  /* ════════════════════════
+     SELECT PAYMENT METHOD
+     FIX: was missing entirely
+  ════════════════════════ */
+  window.selectMethod = function (method) {
+    selectedMethod = method;
+
+    // Update UI — clear all, select one
+    document.querySelectorAll('.co-method').forEach(function (el) {
+      el.classList.remove('selected');
+    });
+    var chosen = document.getElementById('pm-' + method);
+    if (chosen) chosen.classList.add('selected');
+
+    // Clear error
+    var errEl = document.getElementById('co-err');
+    if (errEl) errEl.style.display = 'none';
+
+    var recommended = selectedCorridor ? (corridorMethodMap[selectedCorridor] || null) : null;
+    var userPreferred = user ? user.preferred_payment_method : null;
+
+    fire('Payment Method Selected', {
+      method: method,
+      corridor: selectedCorridor,
+      is_recommended: recommended === method,
+      is_user_preferred: userPreferred === method,
+      preferred_payment_method_by_corridor: selectedCorridor
+        ? (function(){ var o = {}; o[selectedCorridor] = method; return JSON.stringify(o); })()
+        : null
+    });
+  };
+
+  /* ════════════════════════
+     SUBMIT CHECKOUT (Review)
+     FIX: was missing entirely
+  ════════════════════════ */
+  window.submitCheckout = function () {
+    var corridor  = document.getElementById('co-corridor').value;
+    var amount    = document.getElementById('co-amount').value;
+    var recipient = document.getElementById('co-recipient').value.trim();
+    var errEl     = document.getElementById('co-err');
+
+    // Validation
+    errEl.style.display = 'none';
+    if (!corridor)         { errEl.textContent = 'Please select a payment corridor.'; errEl.style.display = 'block'; return; }
+    if (!amount || amount <= 0) { errEl.textContent = 'Please enter a valid amount.'; errEl.style.display = 'block'; return; }
+    if (!selectedMethod)   { errEl.textContent = 'Please select a payment method.'; errEl.style.display = 'block'; return; }
+    if (!recipient)        { errEl.textContent = 'Please enter a recipient name.'; errEl.style.display = 'block'; return; }
+
+    currentAmount    = parseFloat(amount);
+    currentRecipient = recipient;
+    selectedCorridor = corridor;
+
+    // Compute fee based on plan
+    var feeRate = user && user.plan === 'enterprise' ? 0.01 : user && user.plan === 'growth' ? 0.015 : 0.02;
+    var fee     = (currentAmount * feeRate).toFixed(2);
+
+    // Populate review panel
+    document.getElementById('rv-corridor').textContent  = corridor;
+    document.getElementById('rv-amount').textContent    = '₹' + parseFloat(amount).toLocaleString('en-IN');
+    document.getElementById('rv-recipient').textContent = recipient;
+    document.getElementById('rv-method').textContent    = selectedMethod;
+    document.getElementById('rv-fee').textContent       = '₹' + parseFloat(fee).toLocaleString('en-IN') + ' (' + (feeRate * 100) + '%)';
+
+    // Show review, hide form
+    document.getElementById('checkout-form-wrap').style.display = 'none';
+    document.getElementById('co-review-wrap').style.display     = '';
+    document.getElementById('co-success-wrap').style.display    = 'none';
+
+    fire('Checkout Details Filled', {
+      corridor:         corridor,
+      amount:           currentAmount,
+      payment_method:   selectedMethod,
+      recipient:        recipient,
+      fee_rate:         feeRate,
+      fee_amount:       parseFloat(fee),
+      is_recommended:   selectedCorridor && corridorMethodMap[selectedCorridor] === selectedMethod
+    });
+  };
+
+  /* ════════════════════════
+     CONFIRM CHECKOUT
+     FIX: was missing entirely
+  ════════════════════════ */
+  window.confirmCheckout = function () {
+    var txnId = 'pay_' + Math.random().toString(36).substr(2, 10).toUpperCase();
+    var feeRate = user && user.plan === 'enterprise' ? 0.01 : user && user.plan === 'growth' ? 0.015 : 0.02;
+    var fee     = currentAmount ? (currentAmount * feeRate).toFixed(2) : '0';
+    var elapsed = checkoutStartTs ? Math.round((Date.now() - checkoutStartTs) / 1000) : null;
+
+    // Show success
+    document.getElementById('co-success-detail').innerHTML =
+      '₹' + (currentAmount || 0).toLocaleString('en-IN') + ' sent via <strong>' + selectedMethod + '</strong><br>' +
+      'Corridor: ' + (selectedCorridor || '') + ' · Recipient: ' + (currentRecipient || '');
+    document.getElementById('co-txn-id').textContent = 'Transaction ID: ' + txnId;
+    document.getElementById('co-review-wrap').style.display  = 'none';
+    document.getElementById('co-success-wrap').style.display = '';
+
+    var recommended = selectedCorridor ? (corridorMethodMap[selectedCorridor] || null) : null;
+    var userPreferred = user ? user.preferred_payment_method : null;
+
+    fire('Checkout Completed', {
+      transaction_id:   txnId,
+      corridor:         selectedCorridor,
+      amount:           currentAmount,
+      payment_method:   selectedMethod,
+      recipient:        currentRecipient,
+      fee_amount:       parseFloat(fee),
+      fee_rate:         feeRate,
+      is_recommended_method_used: recommended === selectedMethod,
+      is_preferred_method_used:   userPreferred === selectedMethod,
+      time_to_complete_sec: elapsed,
+      plan:             user ? user.plan : null
+    });
+
+    // Update preferred_payment_method_by_corridor trait
+    if (user && selectedCorridor && selectedMethod) {
+      var ppmbc = user.preferred_payment_method_by_corridor
+        ? JSON.parse(user.preferred_payment_method_by_corridor)
+        : {};
+      ppmbc[selectedCorridor] = selectedMethod;
+      var updatedTraits = {
+        preferred_payment_method_by_corridor: JSON.stringify(ppmbc),
+        preferred_payment_method: selectedMethod,
+        preferred_corridor: selectedCorridor,
+        last_transaction_id: txnId,
+        transaction_count_30d: (user.transaction_count_30d || 0) + 1,
+        transaction_volume_30d: (user.transaction_volume_30d || 0) + (currentAmount || 0)
+      };
+      Object.assign(user, updatedTraits);
+      try { if (user.email) localStorage.setItem('cp_user_' + user.email, JSON.stringify(user)); } catch(e) {}
+      if (window.analytics && analytics.identify) analytics.identify(user.merchant_id, updatedTraits);
+      if (window.posthog  && posthog.identify)   posthog.identify(user.merchant_id, updatedTraits);
+    }
+
+    // Reset checkout state for next transaction
+    checkoutStarted = false;
+    checkoutStartTs = null;
+  };
+
+  /* ════════════════════════
+     ABANDON CHECKOUT
+     FIX: was missing entirely
+  ════════════════════════ */
+  window.abandonCheckout = function () {
+    var elapsed = checkoutStartTs ? Math.round((Date.now() - checkoutStartTs) / 1000) : null;
+    fire('Checkout Abandoned', {
+      corridor:           selectedCorridor,
+      amount:             currentAmount,
+      payment_method:     selectedMethod,
+      last_step:          selectedMethod ? 'method_selected' : selectedCorridor ? 'corridor_selected' : 'form_opened',
+      time_spent_sec:     elapsed
+    });
+    resetCheckout();
+    dbTab('overview');
+  };
+
+  /* ════════════════════════
+     BACK TO FORM
+     FIX: was missing entirely
+  ════════════════════════ */
+  window.backToForm = function () {
+    document.getElementById('checkout-form-wrap').style.display = '';
+    document.getElementById('co-review-wrap').style.display     = 'none';
+    document.getElementById('co-success-wrap').style.display    = 'none';
+    fire('Checkout Edit Clicked', { corridor: selectedCorridor, payment_method: selectedMethod });
+  };
+
+  /* ════════════════════════
+     RESET CHECKOUT
+     FIX: was missing entirely
+  ════════════════════════ */
+  window.resetCheckout = function () {
+    selectedMethod   = null;
+    selectedCorridor = null;
+    currentAmount    = null;
+    currentRecipient = null;
+    checkoutStarted  = false;
+    checkoutStartTs  = null;
+
+    // Reset form fields
+    var corridor  = document.getElementById('co-corridor');
+    var amount    = document.getElementById('co-amount');
+    var recipient = document.getElementById('co-recipient');
+    if (corridor)  corridor.value  = '';
+    if (amount)    amount.value    = '';
+    if (recipient) recipient.value = '';
+
+    // Clear method selection
+    document.querySelectorAll('.co-method').forEach(function (el) {
+      el.classList.remove('selected', 'recommended');
+    });
+    document.getElementById('co-recommendation').style.display = 'none';
+    document.getElementById('co-err').style.display            = 'none';
+
+    // Show form, hide other panels
+    document.getElementById('checkout-form-wrap').style.display = '';
+    document.getElementById('co-review-wrap').style.display     = 'none';
+    document.getElementById('co-success-wrap').style.display    = 'none';
+  };
+
+  /* ════════════════════════
      KYC FLOW
-     3 steps the merchant fills → auto-verify
-     on submit. Each step has a distinct event
-     name so PostHog funnel has clean steps.
-     No generic repeated events.
-  ════════════════════════════════════ */
-
+  ════════════════════════ */
   window.kycNext = function (step) {
-
     if (step === 1) {
       var biz   = document.getElementById('kyc-bizname').value.trim();
       var btype = document.getElementById('kyc-biztype').value;
       var gst   = document.getElementById('kyc-gst').value.trim();
-      var pan   = document.getElementById('kyc-pan').value.trim();
+      var pan   = document.getElementById('kyc-pan-num').value.trim();
       var addr  = document.getElementById('kyc-addr').value.trim();
       if (!biz || !gst || !pan) { showKycErr('Business name, GST, and PAN are required.'); return; }
-
-      // Distinct event — not a generic "step completed"
       fire('KYC Business Info Submitted', {
-        business_name:  biz,
-        business_type:  btype,
-        gst_provided:   true,
-        pan_provided:   true,
-        address_provided: !!addr
+        business_name: biz, business_type: btype,
+        gst_provided: true, pan_provided: true, address_provided: !!addr
       });
       updateUserKyc({ kyc_status: 'documents_pending', onboarding_step: 'documents_pending', legal_business_name: biz, business_type_kyc: btype });
       advanceKycUI(1);
     }
-
     if (step === 2) {
-      var allUploaded = kycUploads['pan'] && kycUploads['gst'] && kycUploads['incorporation'];
-      if (!allUploaded) { showKycErr('Please upload all three documents to continue.'); return; }
-
-      fire('KYC Documents Uploaded', {
-        docs: ['pan', 'gst', 'incorporation'],
-        doc_count: 3
-      });
+      if (!kycUploads['pan'] || !kycUploads['gst'] || !kycUploads['incorporation']) {
+        showKycErr('Please upload all three documents to continue.'); return;
+      }
+      fire('KYC Documents Uploaded', { docs: ['pan', 'gst', 'incorporation'], doc_count: 3 });
       updateUserKyc({ kyc_status: 'bank_pending', onboarding_step: 'bank_pending' });
       advanceKycUI(2);
     }
-
     if (step === 3) {
       var acname = document.getElementById('kyc-acname').value.trim();
-      var acnum  = document.getElementById('kyc-acnum').value.trim();
       var ifsc   = document.getElementById('kyc-ifsc').value.trim();
       var bank   = document.getElementById('kyc-bank').value.trim();
       if (!acname || !ifsc) { showKycErr('Account holder name and IFSC are required.'); return; }
-
-      fire('KYC Bank Account Added', {
-        bank_name:    bank || null,
-        ifsc_provided: true,
-        account_provided: true
-      });
+      fire('KYC Bank Account Added', { bank_name: bank || null, ifsc_provided: true, account_provided: true });
       updateUserKyc({ kyc_status: 'under_review', onboarding_step: 'under_review' });
       advanceKycUI(3);
-
-      // Show step 4 as "Verifying..." then auto-verify after 2.5s
-      // In production this would be a real webhook callback from your KYC provider
-      var s4num = document.getElementById('kyc-num-4');
-      var s4st  = document.getElementById('kyc-st-4');
-      var s4    = document.getElementById('kyc-s4');
+      // Show step 4 verifying
+      var s4 = document.getElementById('kyc-s4'), s4num = document.getElementById('kyc-num-4'), s4st = document.getElementById('kyc-st-4');
+      var bar = document.getElementById('kyc-progress-bar');
       if (s4)    { s4.style.opacity = '1'; s4.style.pointerEvents = 'auto'; }
       if (s4num) { s4num.textContent = '…'; s4num.className = 'kyc-step-num active'; }
       if (s4st)  { s4st.textContent = 'Verifying…'; s4st.style.color = 'var(--amber)'; }
-
-      var bar = document.getElementById('kyc-progress-bar');
-      if (bar) bar.style.width = '75%';
-
+      if (bar)   bar.style.width = '75%';
       setTimeout(function () { verifyMerchant(); }, 2500);
     }
   };
 
-  // Called after simulated KYC provider callback
   function verifyMerchant() {
-    // Mark step 4 complete
-    var s4num = document.getElementById('kyc-num-4');
-    var s4st  = document.getElementById('kyc-st-4');
-    var bar   = document.getElementById('kyc-progress-bar');
+    var s4num = document.getElementById('kyc-num-4'), s4st = document.getElementById('kyc-st-4');
+    var bar = document.getElementById('kyc-progress-bar');
     if (s4num) { s4num.textContent = '✓'; s4num.className = 'kyc-step-num done'; }
     if (s4st)  { s4st.textContent = 'Verified'; s4st.className = 'kyc-step-status done'; }
     if (bar)   bar.style.width = '100%';
 
-    // Update user — now fully verified
-    updateUserKyc({
-      kyc_status:      'verified',
-      onboarding_step: 'verified',
-      kyc_verified_at: new Date().toISOString()
-    });
-
-    // Single clean event — KYC is done, merchant is live
+    updateUserKyc({ kyc_status: 'verified', onboarding_step: 'verified', kyc_verified_at: new Date().toISOString() });
     fire('KYC Verified', {
-      email:              user ? user.email : null,
-      merchant_id:        user ? user.merchant_id : null,
-      kyc_status:         'verified',
+      email: user ? user.email : null,
+      merchant_id: user ? user.merchant_id : null,
+      kyc_status: 'verified',
       time_to_verify_sec: Math.round((Date.now() - t0) / 1000)
     });
 
-    // Unlock live dashboard — remove alert
-    var alrt = document.getElementById('db-kyc-alrt');
-    if (alrt) alrt.style.display = 'none';
+    // FIXED: use a closure variable instead of inline onclick referencing `user`
+    var successWrap = document.getElementById('kyc-success-wrap');
+    if (successWrap) {
+      var btn = document.createElement('button');
+      btn.className = 'btn';
+      btn.style.cssText = 'background:#059669;color:#fff;border-color:#059669;font-size:12.5px;padding:7px 16px;flex-shrink:0;margin-left:auto';
+      btn.textContent = 'Go to dashboard →';
+      btn.onclick = function () { go('dashboard', 'kyc_verified'); };
 
-    // Update onboarding checklist in Overview
-    var kst = document.getElementById('ob-kyc-st');
-    if (kst) { kst.textContent = 'Verified'; kst.style.color = 'var(--green)'; }
-    var kd = document.getElementById('ob-kyc-step');
-    if (kd) { var dot = kd.querySelector('.ob-d'); if (dot) dot.className = 'ob-d ob-done'; }
-
-    // Show verified success then go to dashboard
-    var kycWrap = document.querySelector('#pg-kyc-gate > div');
-    if (kycWrap) {
-      var successBanner = document.createElement('div');
-      successBanner.style.cssText = 'background:var(--green-l);border:1px solid #6EE7B7;border-radius:var(--r-lg);padding:18px 20px;margin-top:20px;display:flex;align-items:center;gap:12px';
-      successBanner.innerHTML =
+      var inner = document.createElement('div');
+      inner.style.cssText = 'background:var(--green-l);border:1px solid #6EE7B7;border-radius:var(--r-lg);padding:18px 20px;margin-top:20px;display:flex;align-items:center;gap:12px';
+      inner.innerHTML =
         '<div style="font-size:22px">✅</div>' +
         '<div>' +
           '<div style="font-size:14px;font-weight:600;color:#065F46">KYC Verified — your account is now live</div>' +
           '<div style="font-size:12.5px;color:#059669;margin-top:3px">Real transactions are now enabled. Settlement account is active.</div>' +
-        '</div>' +
-        '<button class="btn" style="margin-left:auto;background:#059669;color:#fff;border-color:#059669;font-size:12.5px;padding:7px 16px;flex-shrink:0" onclick="mountDash(user);go(\'dashboard\',\'kyc_verified\')">Go to dashboard →</button>';
-      kycWrap.appendChild(successBanner);
+        '</div>';
+      inner.appendChild(btn);
+      successWrap.innerHTML = '';
+      successWrap.appendChild(inner);
     }
   }
 
-  // Single function to update user KYC traits and re-identify
-  // Keeps trait updates DRY — one place, always re-identifies
   function updateUserKyc(traits) {
     if (!user) return;
     Object.assign(user, traits);
-    try {
-      if (user.email) localStorage.setItem('cp_user_' + user.email, JSON.stringify(user));
-    } catch (e) {}
-    // identify() updates person properties in both Segment and PostHog.
-    // This is what makes breakdown by kyc_status work in PostHog —
-    // the person property must be updated, not just the event property.
+    try { if (user.email) localStorage.setItem('cp_user_' + user.email, JSON.stringify(user)); } catch (e) {}
     if (window.analytics && analytics.identify) analytics.identify(user.merchant_id, user);
     if (window.posthog  && posthog.identify)   posthog.identify(user.merchant_id, user);
   }
 
   function advanceKycUI(completedStep) {
-    // Mark this step done
     var num  = document.getElementById('kyc-num-'  + completedStep);
     var st   = document.getElementById('kyc-st-'   + completedStep);
     var body = document.getElementById('kyc-body-' + completedStep);
     if (num)  { num.textContent = '✓'; num.className = 'kyc-step-num done'; }
     if (st)   { st.textContent = 'Completed'; st.className = 'kyc-step-status done'; }
     if (body) body.style.display = 'none';
-
-    // Unlock next step (only steps 1→2 and 2→3 — step 4 is handled separately)
     if (completedStep < 3) {
-      var next     = completedStep + 1;
-      var nextWrap = document.getElementById('kyc-s'    + next);
-      var nextBody = document.getElementById('kyc-body-' + next);
-      var nextNum  = document.getElementById('kyc-num-' + next);
-      var nextSt   = document.getElementById('kyc-st-'  + next);
-      if (nextWrap) { nextWrap.style.opacity = '1'; nextWrap.style.pointerEvents = 'auto'; }
-      if (nextBody) nextBody.style.display = '';
-      if (nextNum)  nextNum.className = 'kyc-step-num active';
-      if (nextSt)   { nextSt.textContent = 'In progress'; nextSt.style.color = 'var(--amber)'; }
-
+      var next = completedStep + 1;
+      var nw = document.getElementById('kyc-s' + next);
+      var nb = document.getElementById('kyc-body-' + next);
+      var nn = document.getElementById('kyc-num-' + next);
+      var ns = document.getElementById('kyc-st-' + next);
+      if (nw) { nw.style.opacity = '1'; nw.style.pointerEvents = 'auto'; }
+      if (nb) nb.style.display = '';
+      if (nn) nn.className = 'kyc-step-num active';
+      if (ns) { ns.textContent = 'In progress'; ns.style.color = 'var(--amber)'; }
       var bar = document.getElementById('kyc-progress-bar');
       if (bar) bar.style.width = (next * 25) + '%';
     }
   }
 
   function showKycErr(msg) {
-    var e = document.getElementById('kyc-err');
-    if (!e) {
-      e = document.createElement('div');
-      e.id = 'kyc-err';
-      e.style.cssText = 'background:var(--red-l);color:var(--red);font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA';
-      var activeBody = document.getElementById('kyc-body-' + kycStep);
-      if (activeBody) activeBody.insertBefore(e, activeBody.firstChild);
-    }
+    var existing = document.getElementById('kyc-err');
+    if (existing) existing.parentNode.removeChild(existing);
+    var e = document.createElement('div');
+    e.id = 'kyc-err';
+    e.style.cssText = 'background:var(--red-l);color:var(--red);font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA';
     e.textContent = msg;
+    // Insert before the first active step body button
+    for (var s = 1; s <= 3; s++) {
+      var b = document.getElementById('kyc-body-' + s);
+      if (b && b.style.display !== 'none') { b.insertBefore(e, b.firstChild); break; }
+    }
     setTimeout(function () { if (e.parentNode) e.parentNode.removeChild(e); }, 3000);
   }
 
   window.kycUpload = function (docType) {
-    // Simulates file upload — in production this triggers a real file input
     var el = document.getElementById('ku-' + docType);
     var st = document.getElementById('ku-' + docType + '-st');
     if (!el || !st) return;
-
     el.classList.add('uploaded');
     st.textContent = '✓ Uploaded';
     st.className = 'kyc-upload-status ok';
     kycUploads[docType] = true;
-
     fire('KYC Document Uploaded', { doc_type: docType, step: 2 });
-
-    // Enable continue button once all 3 uploaded
     var allDone = kycUploads['pan'] && kycUploads['gst'] && kycUploads['incorporation'];
     var btn = document.getElementById('kyc-doc-btn');
     if (btn && allDone) { btn.style.opacity = '1'; btn.style.pointerEvents = 'auto'; }
   };
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      AUTH TABS
-  ════════════════════════════════════ */
+  ════════════════════════ */
   window.authTab = function (tab) {
     document.getElementById('t-login').classList.toggle('on',  tab === 'login');
     document.getElementById('t-signup').classList.toggle('on', tab === 'signup');
@@ -1509,24 +1544,16 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     fire('Auth Tab Switched', { tab: tab });
   };
 
-  /* ════════════════════════════════════
-     LOGIN
-  ════════════════════════════════════ */
-  window.doLogin = function (e) {
-    e.preventDefault();
+  /* ════════════════════════
+     LOGIN — FIXED: removed form submit, now uses button onclick
+  ════════════════════════ */
+  window.doLogin = function () {
     var email = document.getElementById('l-email').value.trim();
     var pass  = document.getElementById('l-pass').value.trim();
     var errEl = document.getElementById('l-err');
     errEl.style.display = 'none';
+    if (!email || !pass) { errEl.textContent = 'Email and password are required.'; errEl.style.display = 'block'; return; }
 
-    if (!email || !pass) {
-      errEl.textContent = 'Email and password are required.';
-      errEl.style.display = 'block';
-      return;
-    }
-
-    // Each email is its own merchant profile stored under 'cp_user_<email>'.
-    // Same device, different email = completely different Segment identity.
     var existingProfile = null;
     try {
       var raw = localStorage.getItem('cp_user_' + email);
@@ -1535,67 +1562,46 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
 
     var traits;
     if (existingProfile) {
-      // Returning — restore exact profile, reset login gap to 0
       traits = Object.assign({}, existingProfile, {
-        days_since_last_login: 0,
-        is_returning_user:     true,
-        last_login_ts:         new Date().toISOString()
+        days_since_last_login: 0, is_returning_user: true, last_login_ts: new Date().toISOString()
       });
     } else {
-      // New email on this device — create fresh profile
       var parts = email.split('@')[0].replace(/[._-]/g, ' ').split(' ');
       var fn = parts.map(function(p){ return p.charAt(0).toUpperCase() + p.slice(1); }).join(' ');
       var newMid = 'mrc_' + Math.random().toString(36).substr(2, 6).toUpperCase();
       traits = {
-        email:                    email,
-        firstName:                fn,
-        merchant_id:              newMid,
-        business_name:            fn + "'s Business",
-        business_type:            'other',
-        plan:                     'starter',
-        kyc_status:               'not_started',
-        onboarding_step:          'account_created',
-        days_since_last_login:    0,
-        support_tickets_open:     0,
-        preferred_payment_method: null,
-        preferred_corridor:       null,
-        risk_score:               0.1,
-        trust_score:              0.0,
-        escrow_tier:              'standard',
-        account_age_days:         0,
-        transaction_volume_30d:   0,
-        transaction_count_30d:    0,
-        signup_date:              new Date().toISOString(),
-        is_returning_user:        false,
-        last_login_ts:            new Date().toISOString()
+        email: email, firstName: fn, merchant_id: newMid,
+        business_name: fn + "'s Business", business_type: 'other', plan: 'starter',
+        kyc_status: 'not_started', onboarding_step: 'account_created',
+        days_since_last_login: 0, support_tickets_open: 0,
+        preferred_payment_method: null, preferred_corridor: null,
+        preferred_payment_method_by_corridor: null,
+        risk_score: 0.1, trust_score: 0.0, escrow_tier: 'standard',
+        account_age_days: 0, transaction_volume_30d: 0, transaction_count_30d: 0,
+        signup_date: new Date().toISOString(), is_returning_user: false,
+        last_login_ts: new Date().toISOString()
       };
     }
 
     ident(traits.merchant_id, traits);
-
     fire('Merchant Logged In', {
-      email:                    traits.email,
-      merchant_id:              traits.merchant_id,
-      plan:                     traits.plan,
-      kyc_status:               traits.kyc_status,
-      onboarding_step:          traits.onboarding_step,
-      days_since_last_login:    traits.days_since_last_login,
+      email: traits.email, merchant_id: traits.merchant_id, plan: traits.plan,
+      kyc_status: traits.kyc_status, onboarding_step: traits.onboarding_step,
+      days_since_last_login: traits.days_since_last_login,
       preferred_payment_method: traits.preferred_payment_method,
-      preferred_corridor:       traits.preferred_corridor,
-      risk_score:               traits.risk_score,
-      trust_score:              traits.trust_score,
-      escrow_tier:              traits.escrow_tier,
-      is_returning_user:        traits.is_returning_user
+      preferred_corridor: traits.preferred_corridor,
+      risk_score: traits.risk_score, trust_score: traits.trust_score,
+      escrow_tier: traits.escrow_tier, is_returning_user: traits.is_returning_user
     });
 
-    if (traits.kyc_status === 'verified') { mountDash(traits); go('dashboard', 'login'); } else { go('kyc-gate', 'login'); }
+    if (traits.kyc_status === 'verified') { mountDash(traits); go('dashboard', 'login'); }
+    else { go('kyc-gate', 'login'); }
   };
 
-  /* ════════════════════════════════════
-     SIGNUP
-  ════════════════════════════════════ */
-  window.doSignup = function (e) {
-    e.preventDefault();
+  /* ════════════════════════
+     SIGNUP — FIXED: removed form submit
+  ════════════════════════ */
+  window.doSignup = function () {
     var first = document.getElementById('s-first').value.trim();
     var last  = document.getElementById('s-last').value.trim();
     var email = document.getElementById('s-email').value.trim();
@@ -1603,7 +1609,6 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     var btype = document.getElementById('s-btype').value;
     var errEl = document.getElementById('s-err');
     errEl.style.display = 'none';
-
     if (!email) { errEl.textContent = 'Work email is required.'; errEl.style.display = 'block'; return; }
     if (!biz)   { errEl.textContent = 'Business name is required.'; errEl.style.display = 'block'; return; }
 
@@ -1611,109 +1616,68 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     var derivedFirst = first || email.split('@')[0].replace(/[._-]/g,' ').replace(/\b\w/g, function (l) { return l.toUpperCase(); });
 
     var traits = {
-      email:                    email,
-      firstName:                derivedFirst,
-      lastName:                 last,
-      merchant_id:              mid,
-      business_name:            biz,
-      business_type:            btype || 'other',
-      plan:                     'starter',
-      kyc_status:               'not_started',
-      onboarding_step:          'account_created',
-      preferred_payment_method: null,
-      preferred_corridor:       null,
-      risk_score:               0.1,
-      trust_score:              0.0,
-      escrow_tier:              'standard',
-      account_age_days:         0,
-      transaction_volume_30d:   0,
-      transaction_count_30d:    0,
-      signup_date:              new Date().toISOString(),
-      days_since_last_login:    0,
-      is_returning_user:        false,
-      lead_source:              'website_signup',
+      email: email, firstName: derivedFirst, lastName: last,
+      merchant_id: mid, business_name: biz, business_type: btype || 'other',
+      plan: 'starter', kyc_status: 'not_started', onboarding_step: 'account_created',
+      preferred_payment_method: null, preferred_corridor: null,
+      preferred_payment_method_by_corridor: null,
+      risk_score: 0.1, trust_score: 0.0, escrow_tier: 'standard',
+      account_age_days: 0, transaction_volume_30d: 0, transaction_count_30d: 0,
+      signup_date: new Date().toISOString(), days_since_last_login: 0,
+      is_returning_user: false, lead_source: 'website_signup',
       signup_form_duration_sec: sfT ? Math.round((Date.now() - sfT) / 1000) : null
     };
 
     ident(mid, traits);
     fire('Signed Up', {
-      email:                    traits.email,
-      merchant_id:              traits.merchant_id,
-      plan:                     traits.plan,
-      kyc_status:               traits.kyc_status,
-      onboarding_step:          traits.onboarding_step,
-      business_type:            traits.business_type,
-      days_since_last_login:    0,
-      preferred_payment_method: null,
-      preferred_corridor:       null,
-      risk_score:               traits.risk_score,
-      trust_score:              traits.trust_score,
-      escrow_tier:              traits.escrow_tier,
+      email: traits.email, merchant_id: traits.merchant_id, plan: traits.plan,
+      kyc_status: traits.kyc_status, business_type: traits.business_type,
       signup_form_duration_sec: traits.signup_form_duration_sec
     });
-    go('kyc-gate', 'signup'); // always gate after signup — KYC required
+    go('kyc-gate', 'signup');
   };
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      DASHBOARD MOUNT
-  ════════════════════════════════════ */
+  ════════════════════════ */
   function mountDash(t) {
     var name = t.firstName || (t.email ? t.email.split('@')[0] : 'Merchant');
     document.getElementById('db-name').textContent = name;
-    document.getElementById('db-sub').textContent  =
-      (t.business_name || t.email || '') + '  ·  ' + (t.merchant_id || '');
-
-    var kycVerified = t.kyc_status === 'verified';
-    // KYC alert only shown when logged in via dashboard (post-verification)
-    var alrtEl = document.getElementById('db-kyc-alrt');
-    if (alrtEl) alrtEl.style.display = 'none';
-
-
-
+    document.getElementById('db-sub').textContent  = (t.business_name || t.email || '') + '  ·  ' + (t.merchant_id || '');
     fire('Dashboard Loaded', {
-      email:                    t.email,
-      merchant_id:              t.merchant_id,
-      plan:                     t.plan,
-      kyc_status:               t.kyc_status,
-      onboarding_step:          t.onboarding_step,
-      days_since_last_login:    t.days_since_last_login || 0,
+      email: t.email, merchant_id: t.merchant_id, plan: t.plan,
+      kyc_status: t.kyc_status, days_since_last_login: t.days_since_last_login || 0,
       preferred_payment_method: t.preferred_payment_method || null,
-      preferred_corridor:       t.preferred_corridor || null,
-      risk_score:               t.risk_score || 0,
-      trust_score:              t.trust_score || 0,
-      escrow_tier:              t.escrow_tier || 'standard',
-      is_churn_risk:            (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
-      is_high_risk:             (t.risk_score  || 0) > 0.6,
-      is_high_trust:            (t.trust_score || 0) > 0.7,
-      is_test_mode:             !kycVerified,
-      kyc_verified:             kycVerified
+      preferred_corridor: t.preferred_corridor || null,
+      risk_score: t.risk_score || 0, trust_score: t.trust_score || 0,
+      escrow_tier: t.escrow_tier || 'standard',
+      is_churn_risk: (t.days_since_last_login || 0) > 10 || (t.support_tickets_open || 0) > 2,
+      is_high_risk:  (t.risk_score  || 0) > 0.6,
+      is_high_trust: (t.trust_score || 0) > 0.7,
+      kyc_verified:  t.kyc_status === 'verified'
     });
-
-
   }
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      LOGOUT
-  ════════════════════════════════════ */
+  ════════════════════════ */
   window.doLogout = function () {
     fire('Merchant Logged Out', {
-      email:       user ? user.email       : null,
+      email: user ? user.email : null,
       merchant_id: user ? user.merchant_id : null,
       session_duration_sec: Math.round((Date.now() - t0) / 1000)
     });
-    // Clear active session pointer only — profile stays stored under email key.
-    // Next login with this email will restore the full profile.
     try { localStorage.removeItem('cp_session'); } catch (e) {}
     user = null;
     if (window.analytics && analytics.reset) analytics.reset();
     if (window.posthog  && posthog.reset)   posthog.reset();
-    kycStep = 1; kycUploads = {};
+    kycUploads = {};
     go('home', 'logout');
   };
 
-  /* ════════════════════════════════════
-     CTA / PLAN / DOCS TRACKING
-  ════════════════════════════════════ */
+  /* ════════════════════════
+     CTA / PLAN / DOCS
+  ════════════════════════ */
   document.getElementById('h-bot-cta').addEventListener('click', function () {
     fire('CTA Clicked', { cta_id: 'bottom_get_started', location: 'cta_band', type: 'primary' });
   });
@@ -1724,9 +1688,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
   };
 
   var docCat = {
-    'quickstart': 'getting_started', 'authentication': 'getting_started', 'testing': 'getting_started',
-    'create-payment': 'payments', 'payment-methods': 'payments', 'webhooks': 'payments',
-    'payouts': 'payouts', 'escrow': 'payouts', 'fraud': 'risk', 'kyc': 'compliance'
+    'quickstart':'getting_started','authentication':'getting_started','testing':'getting_started',
+    'create-payment':'payments','payment-methods':'payments','webhooks':'payments',
+    'payouts':'payouts','escrow':'payouts','fraud':'risk','kyc':'compliance'
   };
   var activeDoc = 'quickstart', docT = Date.now();
   window.setDoc = function (id) {
@@ -1737,9 +1701,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     fire('Doc Viewed', { doc_id: id, doc_category: docCat[id] || null });
   };
 
-  /* ════════════════════════════════════
-     SIGNUP FORM FIELD TRACKING
-  ════════════════════════════════════ */
+  /* ════════════════════════
+     SIGNUP FIELD TRACKING
+  ════════════════════════ */
   window.trackSField = function (f, v) { fire('Signup Field Changed', { field: f, value: v }); };
   var formStarted = false;
   ['s-first', 's-last', 's-email', 's-biz'].forEach(function (fid) {
@@ -1753,9 +1717,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     });
   });
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      PAGE EXIT
-  ════════════════════════════════════ */
+  ════════════════════════ */
   window.addEventListener('beforeunload', function () {
     if (!C) return;
     fire('Session Ended', {
@@ -1765,9 +1729,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     });
   });
 
-  /* ════════════════════════════════════
+  /* ════════════════════════
      SCROLL REVEAL
-  ════════════════════════════════════ */
+  ════════════════════════ */
   function initReveal() {
     var obs = new IntersectionObserver(function (entries) {
       entries.forEach(function (e) { if (e.isIntersecting) { e.target.classList.add('on'); obs.unobserve(e.target); } });
@@ -1775,32 +1739,27 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     document.querySelectorAll('.reveal').forEach(function (el) { obs.observe(el); });
   }
 
-  /* ════════════════════════════════════
-     INIT
-  ════════════════════════════════════ */
+  /* ════════════════════════
+     INIT — route based on restored session
+  ════════════════════════ */
   updateNav();
   updateHero();
   initReveal();
   document.querySelectorAll('[data-p="home"]').forEach(function (a) { a.classList.add('active'); });
 
-  // If session was restored, route to correct page based on kyc_status
   if (user) {
     if (user.kyc_status === 'verified') {
       mountDash(user);
-      // Show dashboard, hide home
       document.querySelectorAll('.pg, .db-pg').forEach(function(p){ p.classList.remove('on'); });
       document.getElementById('pg-db').classList.add('on');
       cur = 'dashboard';
-      updateNav();
-      updateHero();
     } else {
-      // Show KYC gate, hide home
       document.querySelectorAll('.pg, .db-pg').forEach(function(p){ p.classList.remove('on'); });
       document.getElementById('pg-kyc-gate').classList.add('on');
       cur = 'kyc-gate';
-      updateNav();
-      updateHero();
     }
+    updateNav();
+    updateHero();
   }
 
   if (C) {
@@ -1812,3 +1771,7 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
 </script>
 </body>
 </html>
+
+
+
+
