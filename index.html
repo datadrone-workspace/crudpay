@@ -9,7 +9,7 @@
 
   <script>
     var ANALYTICS_CONFIG = {
-      SEGMENT_WRITE_KEY: "suzg9Ck5EW9xT65CXpm456ObsF3r3K31",
+      SEGMENT_WRITE_KEY: "YOUR_SEGMENT_WRITE_KEY",
       POSTHOG_API_KEY:   "YOUR_POSTHOG_API_KEY",
       POSTHOG_HOST:      "https://app.posthog.com"
     };
@@ -250,6 +250,17 @@
     .kyc-upload.uploaded{border-color:var(--green);border-style:solid;background:var(--green-l)}
     .kyc-upload-status{font-size:11px;color:var(--g400);margin-top:8px;font-weight:500}
     .kyc-upload-status.ok{color:var(--green)}
+
+    /* Checkout */
+    .co-method{display:flex;align-items:center;gap:10px;padding:10px 12px;border:1px solid var(--g200);border-radius:var(--r);cursor:pointer;transition:all .15s;background:var(--white)}
+    .co-method:hover{border-color:var(--black)}
+    .co-method.selected{border-color:var(--black);background:var(--black);color:var(--white)}
+    .co-method.selected .co-method-sub{color:rgba(255,255,255,.5)}
+    .co-method.recommended{border-color:var(--blue);background:var(--blue-l)}
+    .co-method.recommended.selected{background:var(--black);border-color:var(--black)}
+    .co-method-icon{font-size:18px;flex-shrink:0}
+    .co-method-name{font-size:13px;font-weight:500}
+    .co-method-sub{font-size:11px;color:var(--g400)}
 
     .reveal{opacity:0;transform:translateY(14px);transition:opacity .55s ease,transform .55s ease}
     .reveal.on{opacity:1;transform:translateY(0)}
@@ -628,6 +639,7 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
   <div style="background:var(--white);border-bottom:1px solid var(--g200);padding:0 32px;position:sticky;top:60px;z-index:100">
     <div style="max-width:1160px;margin:0 auto;display:flex;gap:0">
       <button class="db-tab on" id="dbt-overview" onclick="dbTab('overview')">Overview</button>
+      <button class="db-tab" id="dbt-send" onclick="dbTab('send')">Send Payment</button>
       <button class="db-tab" id="dbt-transactions" onclick="dbTab('transactions')">Transactions</button>
       <button class="db-tab" id="dbt-settings" onclick="dbTab('settings')">Settings</button>
     </div>
@@ -787,6 +799,129 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
             <div class="kyc-step-status" id="kyc-st-4" style="color:var(--g400)">Pending</div>
           </div>
         </div>
+      </div>
+    </div>
+
+    <!-- SEND PAYMENT TAB -->
+    <div id="db-send" style="display:none">
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;align-items:start;max-width:960px">
+
+        <!-- Left: Checkout form -->
+        <div class="db-card" id="checkout-form-wrap">
+          <div class="db-ct">New Payment</div>
+
+          <!-- Corridor selector — drives preferred method suggestion -->
+          <div class="ff" style="margin-bottom:14px">
+            <label>Payment Corridor</label>
+            <select id="co-corridor" onchange="onCorridorChange(this.value)">
+              <option value="">Select corridor</option>
+              <option value="INR-USD">🇮🇳 INR → 🇺🇸 USD</option>
+              <option value="INR-EUR">🇮🇳 INR → 🇪🇺 EUR</option>
+              <option value="INR-BRL">🇮🇳 INR → 🇧🇷 BRL</option>
+              <option value="INR-MXN">🇮🇳 INR → 🇲🇽 MXN</option>
+              <option value="INR-GBP">🇮🇳 INR → 🇬🇧 GBP</option>
+            </select>
+          </div>
+
+          <div class="kyc-form-row" style="margin-bottom:14px">
+            <div class="ff">
+              <label>Amount (₹)</label>
+              <input type="number" id="co-amount" placeholder="50000" min="1" oninput="onAmountInput(this.value)" />
+            </div>
+            <div class="ff">
+              <label>Recipient</label>
+              <input type="text" id="co-recipient" placeholder="Vendor / Customer name" />
+            </div>
+          </div>
+
+          <!-- Recommended method banner — shown based on corridor -->
+          <div id="co-recommendation" style="display:none;background:var(--blue-l);border:1px solid #BFDBFE;border-radius:var(--r);padding:10px 14px;margin-bottom:14px;font-size:12.5px;color:#1e40af">
+            <span id="co-rec-text"></span>
+          </div>
+
+          <!-- Payment method grid -->
+          <div style="margin-bottom:16px">
+            <label style="font-size:12px;font-weight:500;color:var(--g600);display:block;margin-bottom:8px">Payment Method</label>
+            <div id="co-methods" style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+              <div class="co-method" id="pm-upi" data-method="UPI" onclick="selectMethod('UPI')">
+                <span class="co-method-icon">⚡</span>
+                <div><div class="co-method-name">UPI</div><div class="co-method-sub">Instant · Free</div></div>
+              </div>
+              <div class="co-method" id="pm-card" data-method="Card" onclick="selectMethod('Card')">
+                <span class="co-method-icon">💳</span>
+                <div><div class="co-method-name">Card</div><div class="co-method-sub">Visa / Mastercard</div></div>
+              </div>
+              <div class="co-method" id="pm-neft" data-method="NEFT" onclick="selectMethod('NEFT')">
+                <span class="co-method-icon">🏦</span>
+                <div><div class="co-method-name">NEFT / IMPS</div><div class="co-method-sub">Bank transfer</div></div>
+              </div>
+              <div class="co-method" id="pm-pix" data-method="PIX" onclick="selectMethod('PIX')">
+                <span class="co-method-icon">🇧🇷</span>
+                <div><div class="co-method-name">PIX</div><div class="co-method-sub">Brazil · Instant</div></div>
+              </div>
+              <div class="co-method" id="pm-sofort" data-method="SOFORT" onclick="selectMethod('SOFORT')">
+                <span class="co-method-icon">🇪🇺</span>
+                <div><div class="co-method-name">SOFORT</div><div class="co-method-sub">EU bank transfer</div></div>
+              </div>
+              <div class="co-method" id="pm-wallet" data-method="Wallet" onclick="selectMethod('Wallet')">
+                <span class="co-method-icon">👜</span>
+                <div><div class="co-method-name">Wallet</div><div class="co-method-sub">Paytm / PhonePe</div></div>
+              </div>
+            </div>
+          </div>
+
+          <div id="co-err" style="display:none;background:var(--red-l);color:var(--red);font-size:12.5px;padding:9px 12px;border-radius:6px;margin-bottom:12px;border:1px solid #FECACA"></div>
+
+          <div style="display:flex;gap:10px">
+            <button class="btn bp" style="flex:1;justify-content:center" id="co-submit-btn" onclick="submitCheckout()">Review Payment</button>
+            <button class="btn bg" onclick="abandonCheckout()">Cancel</button>
+          </div>
+        </div>
+
+        <!-- Right: Review / Confirm panel -->
+        <div id="co-review-wrap" style="display:none">
+          <div class="db-card" style="margin-bottom:14px">
+            <div class="db-ct">Review Payment</div>
+            <div style="display:flex;flex-direction:column;gap:10px;margin-bottom:20px">
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)">
+                <span style="color:var(--g600)">Corridor</span>
+                <span id="rv-corridor" style="font-weight:500"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)">
+                <span style="color:var(--g600)">Amount</span>
+                <span id="rv-amount" style="font-weight:500"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)">
+                <span style="color:var(--g600)">Recipient</span>
+                <span id="rv-recipient" style="font-weight:500"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0;border-bottom:1px solid var(--g100)">
+                <span style="color:var(--g600)">Payment Method</span>
+                <span id="rv-method" style="font-weight:500"></span>
+              </div>
+              <div style="display:flex;justify-content:space-between;font-size:13px;padding:8px 0">
+                <span style="color:var(--g600)">Est. Fee</span>
+                <span id="rv-fee" style="font-weight:500;color:var(--green)"></span>
+              </div>
+            </div>
+            <div style="display:flex;gap:10px">
+              <button class="btn bp" style="flex:1;justify-content:center" onclick="confirmCheckout()">Confirm & Send</button>
+              <button class="btn bg" onclick="backToForm()">Edit</button>
+            </div>
+          </div>
+        </div>
+
+        <!-- Right: Success panel -->
+        <div id="co-success-wrap" style="display:none">
+          <div class="db-card" style="text-align:center;padding:40px 28px">
+            <div style="font-size:40px;margin-bottom:14px">✅</div>
+            <div style="font-size:16px;font-weight:600;margin-bottom:6px">Payment Sent</div>
+            <div id="co-success-detail" style="font-size:13px;color:var(--g600);margin-bottom:20px;line-height:1.6"></div>
+            <div style="font-size:11px;font-family:'SF Mono',monospace;color:var(--g400);background:var(--g50);padding:8px 12px;border-radius:var(--r);margin-bottom:20px" id="co-txn-id"></div>
+            <button class="btn bp" style="justify-content:center;width:100%" onclick="resetCheckout()">Send Another</button>
+          </div>
+        </div>
+
       </div>
     </div>
 
@@ -1139,12 +1274,14 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
      DASHBOARD TABS
   ════════════════════════════════════ */
   window.dbTab = function (tab) {
-    ['overview', 'kyc', 'transactions', 'settings'].forEach(function (t) {
-      document.getElementById('db-' + t).style.display   = t === tab ? '' : 'none';
-      document.getElementById('dbt-' + t).classList.toggle('on', t === tab);
+    ['overview', 'send', 'kyc', 'transactions', 'settings'].forEach(function (t) {
+      var el = document.getElementById('db-' + t);
+      if (el) el.style.display = t === tab ? '' : 'none';
+      var btn = document.getElementById('dbt-' + t);
+      if (btn) btn.classList.toggle('on', t === tab);
     });
     fire('Dashboard Tab Viewed', { tab: tab });
-    // Populate settings fields from user state
+    if (tab === 'send') onSendTabOpen();
     if (tab === 'settings' && user) {
       var sb = document.getElementById('set-biz');   if (sb) sb.value = user.business_name || '';
       var se = document.getElementById('set-email'); if (se) se.value = user.email || '';
