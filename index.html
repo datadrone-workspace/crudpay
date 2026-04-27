@@ -1255,14 +1255,15 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     var wrap = document.getElementById('hero-actions');
     if (!wrap) return;
     if (user) {
+      var dest = (user.kyc_status === 'verified') ? 'dashboard' : 'kyc-gate';
+      var label = (user.kyc_status === 'verified') ? 'Go to dashboard' : 'Complete KYC';
       wrap.innerHTML =
-        '<button class="btn bp bl" onclick="go(\'dashboard\')">Go to dashboard</button>' +
+        '<button class="btn bp bl" onclick="go(\'' + dest + '\')">' + label + '</button>' +
         '<button class="btn bg bl" onclick="go(\'docs\')">See the docs</button>';
     } else {
       wrap.innerHTML =
         '<button class="btn bp bl" id="h-cta1" onclick="go(\'login\')">Create account</button>' +
         '<button class="btn bg bl" id="h-cta2" onclick="go(\'docs\')">See the docs</button>';
-      // Re-attach analytics listeners on freshly created elements
       var c1 = document.getElementById('h-cta1');
       var c2 = document.getElementById('h-cta2');
       if (c1) c1.addEventListener('click', function () { fire('CTA Clicked', { cta_id: 'hero_create_account', location: 'hero', type: 'primary' }); });
@@ -1858,6 +1859,288 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       if (el.value.trim()) fire('Signup Field Completed', { field: fid.replace('s-', '') });
     });
   });
+
+  /* ════════════════════════════════════
+     CHECKOUT — UC2 CONVERSION FLOW
+     Corridor → recommended method → select
+     method → password confirm → complete.
+     Every step fires a distinct event so
+     PostHog funnel has real drop-off data.
+  ════════════════════════════════════ */
+
+  // Per-corridor preferred method — what CRUDPay would surface first
+  var corridorMethodMap = {
+    'INR-BRL': 'PIX',
+    'INR-EUR': 'SOFORT',
+    'INR-USD': 'Card',
+    'INR-GBP': 'Card',
+    'INR-MXN': 'Card'
+  };
+
+  var checkoutState = {
+    corridor: null, amount: null, recipient: null,
+    method: null, startedAt: null, checkoutId: null
+  };
+
+  window.onSendTabOpen = function () {
+    // Reset form to clean state
+    checkoutState = { corridor: null, amount: null, recipient: null, method: null, startedAt: null, checkoutId: null };
+    document.getElementById('checkout-form-wrap').style.display = '';
+    document.getElementById('co-review-wrap').style.display = 'none';
+    document.getElementById('co-success-wrap').style.display = 'none';
+    document.getElementById('co-recommendation').style.display = 'none';
+    document.getElementById('co-err').style.display = 'none';
+    document.querySelectorAll('.co-method').forEach(function(m){ m.classList.remove('selected','recommended'); });
+    document.getElementById('co-corridor').value = '';
+    document.getElementById('co-amount').value = '';
+    document.getElementById('co-recipient').value = '';
+    // Remove password field if it was added
+    var pw = document.getElementById('co-password-wrap');
+    if (pw) pw.remove();
+  };
+
+  window.onCorridorChange = function (corridor) {
+    checkoutState.corridor = corridor || null;
+    document.querySelectorAll('.co-method').forEach(function(m){ m.classList.remove('recommended'); });
+    var rec = document.getElementById('co-recommendation');
+    if (!corridor) { rec.style.display = 'none'; return; }
+
+    var preferred = corridorMethodMap[corridor] || null;
+
+    // Fire Checkout Started on first corridor selection
+    if (!checkoutState.startedAt) {
+      checkoutState.startedAt = Date.now();
+      checkoutState.checkoutId = 'chk_' + Math.random().toString(36).substr(2,8);
+      fire('Checkout Started', {
+        checkout_id:     checkoutState.checkoutId,
+        corridor:        corridor,
+        merchant_id:     user ? user.merchant_id : null,
+        email:           user ? user.email : null
+      });
+    } else {
+      // Corridor changed mid-checkout — UC3 signal
+      if (checkoutState.corridor && checkoutState.corridor !== corridor) {
+        // Update corridor_change_7d on user profile
+        if (user) {
+          user.corridor_change_7d = (user.corridor_change_7d || 0) + 1;
+          var newRisk = computeRiskScore({
+            failed_logins_7d:   user.failed_logins_7d   || 0,
+            device_changes_7d:  user.device_changes_7d  || 0,
+            velocity_spike:     user.velocity_spike      || false,
+            corridor_change_7d: user.corridor_change_7d,
+            account_age_days:   user.account_age_days    || 0,
+            kyc_verified:       user.kyc_status === 'verified'
+          });
+          user.risk_score = newRisk;
+          updateUserKyc({ corridor_change_7d: user.corridor_change_7d, risk_score: newRisk });
+          fire('Corridor Changed', {
+            from_corridor:      checkoutState.corridor,
+            to_corridor:        corridor,
+            corridor_change_7d: user.corridor_change_7d,
+            risk_score_after:   newRisk
+          });
+        }
+      }
+      checkoutState.corridor = corridor;
+    }
+
+    // Highlight recommended method
+    if (preferred) {
+      var pmId = 'pm-' + preferred.toLowerCase();
+      var pmEl = document.getElementById(pmId);
+      if (pmEl) pmEl.classList.add('recommended');
+      rec.style.display = '';
+      document.getElementById('co-rec-text').textContent =
+        '⚡ Recommended for ' + corridor + ': ' + preferred + ' — fastest & lowest fee for this corridor.';
+    } else {
+      rec.style.display = 'none';
+    }
+  };
+
+  window.onAmountInput = function (val) {
+    checkoutState.amount = parseFloat(val) || null;
+  };
+
+  window.selectMethod = function (method) {
+    checkoutState.method = method;
+    document.querySelectorAll('.co-method').forEach(function(m){
+      m.classList.toggle('selected', m.dataset.method === method);
+    });
+    var preferred = checkoutState.corridor ? (corridorMethodMap[checkoutState.corridor] || null) : null;
+    fire('Payment Method Selected', {
+      checkout_id:          checkoutState.checkoutId,
+      method:               method,
+      corridor:             checkoutState.corridor,
+      is_recommended:       method === preferred,
+      merchant_id:          user ? user.merchant_id : null,
+      email:                user ? user.email : null,
+      preferred_for_corridor: preferred
+    });
+  };
+
+  window.submitCheckout = function () {
+    var errEl = document.getElementById('co-err');
+    errEl.style.display = 'none';
+    var corridor  = document.getElementById('co-corridor').value;
+    var amount    = parseFloat(document.getElementById('co-amount').value);
+    var recipient = document.getElementById('co-recipient').value.trim();
+    var method    = checkoutState.method;
+
+    if (!corridor)  { errEl.textContent = 'Please select a corridor.';       errEl.style.display = 'block'; return; }
+    if (!amount || amount <= 0) { errEl.textContent = 'Please enter an amount.'; errEl.style.display = 'block'; return; }
+    if (!recipient) { errEl.textContent = 'Please enter a recipient name.';   errEl.style.display = 'block'; return; }
+    if (!method)    { errEl.textContent = 'Please select a payment method.';  errEl.style.display = 'block'; return; }
+
+    checkoutState.amount    = amount;
+    checkoutState.recipient = recipient;
+
+    // Inject password field before review — same password as login (1234)
+    var existingPw = document.getElementById('co-password-wrap');
+    if (!existingPw) {
+      var pwWrap = document.createElement('div');
+      pwWrap.id = 'co-password-wrap';
+      pwWrap.style.cssText = 'margin-bottom:14px';
+      pwWrap.innerHTML =
+        '<div class="ff">' +
+          '<label>Confirm with password</label>' +
+          '<input type="password" id="co-password" placeholder="••••••••" />' +
+        '</div>';
+      var submitBtn = document.getElementById('co-submit-btn');
+      submitBtn.parentNode.insertBefore(pwWrap, submitBtn.parentNode.children[submitBtn.parentNode.children.length - 1]);
+    }
+
+    // If password field is now shown, validate it
+    var pwEl = document.getElementById('co-password');
+    if (pwEl) {
+      if (!pwEl.value) { errEl.textContent = 'Enter your password to continue.'; errEl.style.display = 'block'; return; }
+
+      // ── PAYMENT PASSWORD CHECK ─────────────────────────────
+      if (pwEl.value !== '1234') {
+        incFailedAttempts(user ? user.email : '');
+        var attempts = getFailedAttempts(user ? user.email : '');
+        fire('Payment Auth Failed', {
+          email:          user ? user.email : null,
+          merchant_id:    user ? user.merchant_id : null,
+          attempt_number: attempts,
+          checkout_id:    checkoutState.checkoutId,
+          corridor:       corridor,
+          amount:         amount
+        });
+        // Update risk score on wrong payment password
+        if (user && attempts >= 3) {
+          user.failed_logins_7d = (user.failed_logins_7d || 0) + 1;
+          var newRisk = computeRiskScore({
+            failed_logins_7d:   user.failed_logins_7d,
+            device_changes_7d:  user.device_changes_7d  || 0,
+            velocity_spike:     user.velocity_spike      || false,
+            corridor_change_7d: user.corridor_change_7d || 0,
+            account_age_days:   user.account_age_days    || 0,
+            kyc_verified:       user.kyc_status === 'verified'
+          });
+          user.risk_score = newRisk;
+          updateUserKyc({ failed_logins_7d: user.failed_logins_7d, risk_score: newRisk });
+          fire('High Risk Payment Attempt', {
+            email: user.email, merchant_id: user.merchant_id,
+            risk_score: newRisk, failed_logins_7d: user.failed_logins_7d
+          });
+        }
+        errEl.textContent = attempts < 3
+          ? 'Incorrect password. ' + (3 - attempts) + ' attempt(s) remaining.'
+          : 'Incorrect password. Risk score elevated.';
+        errEl.style.display = 'block';
+        return;
+      }
+
+      // Correct password — reset attempts
+      resetFailedAttempts(user ? user.email : '');
+    }
+
+    // Show review panel
+    var fee = method === 'UPI' || method === 'PIX' ? '₹0 (Free)' : '₹' + Math.round(amount * 0.015);
+    document.getElementById('rv-corridor').textContent  = corridor;
+    document.getElementById('rv-amount').textContent    = '₹' + amount.toLocaleString('en-IN');
+    document.getElementById('rv-recipient').textContent = recipient;
+    document.getElementById('rv-method').textContent    = method;
+    document.getElementById('rv-fee').textContent       = fee;
+    document.getElementById('checkout-form-wrap').style.display = 'none';
+    document.getElementById('co-review-wrap').style.display = '';
+
+    fire('Checkout Review Reached', {
+      checkout_id: checkoutState.checkoutId,
+      corridor:    corridor,
+      amount:      amount,
+      method:      method,
+      email:       user ? user.email : null,
+      merchant_id: user ? user.merchant_id : null
+    });
+  };
+
+  window.backToForm = function () {
+    document.getElementById('co-review-wrap').style.display = 'none';
+    document.getElementById('checkout-form-wrap').style.display = '';
+    fire('Checkout Review Edited', { checkout_id: checkoutState.checkoutId });
+  };
+
+  window.confirmCheckout = function () {
+    var preferred = checkoutState.corridor ? (corridorMethodMap[checkoutState.corridor] || null) : null;
+    var timeTaken = checkoutState.startedAt ? Math.round((Date.now() - checkoutState.startedAt) / 1000) : null;
+    var txnId = 'pay_' + Math.random().toString(36).substr(2, 10).toUpperCase();
+
+    fire('Checkout Completed', {
+      checkout_id:             checkoutState.checkoutId,
+      transaction_id:          txnId,
+      corridor:                checkoutState.corridor,
+      amount:                  checkoutState.amount,
+      method:                  checkoutState.method,
+      is_preferred_method:     checkoutState.method === preferred,
+      preferred_for_corridor:  preferred,
+      time_to_complete_sec:    timeTaken,
+      email:                   user ? user.email : null,
+      merchant_id:             user ? user.merchant_id : null
+    });
+
+    // Update preferred_payment_method on merchant profile
+    if (user) {
+      user.preferred_payment_method = checkoutState.method;
+      user.preferred_corridor       = checkoutState.corridor;
+      user.transaction_count_30d    = (user.transaction_count_30d || 0) + 1;
+      user.transaction_volume_30d   = (user.transaction_volume_30d || 0) + (checkoutState.amount || 0);
+      // Recalculate trust score — more transactions = more trust
+      user.trust_score = Math.min(1.0, Math.round(((user.trust_score || 0) + 0.05) * 100) / 100);
+      updateUserKyc({
+        preferred_payment_method: user.preferred_payment_method,
+        preferred_corridor:       user.preferred_corridor,
+        transaction_count_30d:    user.transaction_count_30d,
+        transaction_volume_30d:   user.transaction_volume_30d,
+        trust_score:              user.trust_score
+      });
+    }
+
+    document.getElementById('co-review-wrap').style.display = 'none';
+    document.getElementById('co-success-wrap').style.display = '';
+    document.getElementById('co-success-detail').textContent =
+      '₹' + (checkoutState.amount || 0).toLocaleString('en-IN') +
+      ' → ' + checkoutState.recipient + ' via ' + checkoutState.method + ' (' + checkoutState.corridor + ')';
+    document.getElementById('co-txn-id').textContent = txnId;
+  };
+
+  window.abandonCheckout = function () {
+    if (!checkoutState.startedAt) { dbTab('overview'); return; }
+    fire('Checkout Abandoned', {
+      checkout_id: checkoutState.checkoutId,
+      corridor:    checkoutState.corridor,
+      amount:      checkoutState.amount,
+      method:      checkoutState.method,
+      step:        checkoutState.method ? 'method_selected' : checkoutState.corridor ? 'corridor_selected' : 'started',
+      email:       user ? user.email : null,
+      merchant_id: user ? user.merchant_id : null
+    });
+    dbTab('overview');
+  };
+
+  window.resetCheckout = function () {
+    onSendTabOpen();
+  };
 
   /* ════════════════════════════════════
      PAGE EXIT
