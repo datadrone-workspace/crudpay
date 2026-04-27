@@ -749,9 +749,15 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
      Sets user before anything else runs,
      so boot() can re-identify immediately.
   ════════════════════════════════════ */
+  // Each email gets its own profile stored as 'cp_user_<email>'.
+  // 'cp_session' holds the email of whoever is currently logged in.
+  // On restore we look up their specific profile, not a single shared slot.
   try {
-    var saved = localStorage.getItem('cp_user');
-    if (saved) user = JSON.parse(saved);
+    var activeEmail = localStorage.getItem('cp_session');
+    if (activeEmail) {
+      var saved = localStorage.getItem('cp_user_' + activeEmail);
+      if (saved) user = JSON.parse(saved);
+    }
   } catch (e) {}
 
   /* ════════════════════════════════════
@@ -818,8 +824,14 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
   function ident(mid, traits, silent) {
     // Always set JS state first — no consent check
     user = Object.assign({ merchant_id: mid }, traits);
-    if (!silent)
-      try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
+    if (!silent && traits.email) {
+      try {
+        // Store profile under email-specific key so each merchant has their own record
+        localStorage.setItem('cp_user_' + traits.email, JSON.stringify(user));
+        // Write active session pointer
+        localStorage.setItem('cp_session', traits.email);
+      } catch (e) {}
+    }
     // Send to tools only if consented
     if (!C) return;
     if (window.analytics && analytics.identify) analytics.identify(mid, traits);
@@ -1038,7 +1050,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
     var biz = document.getElementById('set-biz').value.trim();
     if (biz && user) {
       user.business_name = biz;
-      try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
+      try {
+        if (user.email) localStorage.setItem('cp_user_' + user.email, JSON.stringify(user));
+      } catch (e) {}
       fire('Settings Saved', { field: 'business_name', new_value: biz });
     }
   };
@@ -1174,7 +1188,9 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
   function updateUserKyc(traits) {
     if (!user) return;
     Object.assign(user, traits);
-    try { localStorage.setItem('cp_user', JSON.stringify(user)); } catch (e) {}
+    try {
+      if (user.email) localStorage.setItem('cp_user_' + user.email, JSON.stringify(user));
+    } catch (e) {}
     // identify() updates person properties in both Segment and PostHog.
     // This is what makes breakdown by kyc_status work in PostHog —
     // the person property must be updated, not just the event property.
@@ -1268,40 +1284,54 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       return;
     }
 
-    var firstName = email.split('@')[0]
-      .replace(/[._-]/g, ' ')
-      .replace(/\b\w/g, function (l) { return l.toUpperCase(); });
+    // Each email is its own merchant profile stored under 'cp_user_<email>'.
+    // Same device, different email = completely different Segment identity.
+    var existingProfile = null;
+    try {
+      var raw = localStorage.getItem('cp_user_' + email);
+      if (raw) existingProfile = JSON.parse(raw);
+    } catch (ex) {}
 
-    var traits = {
-      email:                    email,
-      firstName:                firstName,
-      merchant_id:              'mrc_8821',
-      business_name:            'Shopkart India',
-      business_type:            'ecommerce',
-      plan:                     'growth',
-      kyc_status:               'pending',
-      onboarding_step:          'kyc_pending',
-      days_since_last_login:    14,
-      support_tickets_open:     3,
-      preferred_payment_method: 'UPI',
-      preferred_corridor:       'INR-USD',
-      risk_score:               0.72,
-      trust_score:              0.41,
-      escrow_tier:              'standard',
-      account_age_days:         135,
-      signup_date:              '2024-09-12',
-      transaction_volume_30d:   241800,
-      transaction_count_30d:    1847,
-      is_returning_user:        true
-    };
+    var traits;
+    if (existingProfile) {
+      // Returning — restore exact profile, reset login gap to 0
+      traits = Object.assign({}, existingProfile, {
+        days_since_last_login: 0,
+        is_returning_user:     true,
+        last_login_ts:         new Date().toISOString()
+      });
+    } else {
+      // New email on this device — create fresh profile
+      var parts = email.split('@')[0].replace(/[._-]/g, ' ').split(' ');
+      var fn = parts.map(function(p){ return p.charAt(0).toUpperCase() + p.slice(1); }).join(' ');
+      var newMid = 'mrc_' + Math.random().toString(36).substr(2, 6).toUpperCase();
+      traits = {
+        email:                    email,
+        firstName:                fn,
+        merchant_id:              newMid,
+        business_name:            fn + "'s Business",
+        business_type:            'other',
+        plan:                     'starter',
+        kyc_status:               'not_started',
+        onboarding_step:          'account_created',
+        days_since_last_login:    0,
+        support_tickets_open:     0,
+        preferred_payment_method: null,
+        preferred_corridor:       null,
+        risk_score:               0.1,
+        trust_score:              0.0,
+        escrow_tier:              'standard',
+        account_age_days:         0,
+        transaction_volume_30d:   0,
+        transaction_count_30d:    0,
+        signup_date:              new Date().toISOString(),
+        is_returning_user:        false,
+        last_login_ts:            new Date().toISOString()
+      };
+    }
 
-    // 1. ident() — sets user state synchronously, then sends to Segment
-    ident('mrc_8821', traits);
+    ident(traits.merchant_id, traits);
 
-    // 2. fire() — full traits on the track event, not just on identify
-    //    user is already set by ident() so base payload has email + merchant_id
-    // track event is lean — only what's needed per PostHog funnel
-    // all traits are person properties via ident() above
     fire('Merchant Logged In', {
       email:                    traits.email,
       merchant_id:              traits.merchant_id,
@@ -1435,8 +1465,10 @@ const client = new CRUDPay('YOUR_API_KEY');</pre>
       merchant_id: user ? user.merchant_id : null,
       session_duration_sec: Math.round((Date.now() - t0) / 1000)
     });
+    // Clear active session pointer only — profile stays stored under email key.
+    // Next login with this email will restore the full profile.
+    try { localStorage.removeItem('cp_session'); } catch (e) {}
     user = null;
-    try { localStorage.removeItem('cp_user'); } catch (e) {}
     if (window.analytics && analytics.reset) analytics.reset();
     if (window.posthog  && posthog.reset)   posthog.reset();
     kycStep = 1; kycUploads = {};
